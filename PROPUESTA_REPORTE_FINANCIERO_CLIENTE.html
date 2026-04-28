@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Propuesta: Panel de Reportes Financieros — CrediFácil</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #000;
+            background: #fff;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 22pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 8pt;
+            page-break-after: avoid;
+        }
+
+        h2 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 20pt;
+            margin-bottom: 10pt;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4pt;
+            page-break-after: avoid;
+        }
+
+        h3 {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 14pt;
+            margin-bottom: 6pt;
+            page-break-after: avoid;
+        }
+
+        p {
+            margin-bottom: 10pt;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-bottom: 10pt;
+            padding-left: 20pt;
+        }
+
+        li {
+            margin-bottom: 4pt;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12pt 0;
+            page-break-inside: avoid;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 8pt;
+            text-align: left;
+            font-size: 10pt;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        blockquote {
+            margin: 12pt 0;
+            padding: 8pt 12pt;
+            border-left: 3px solid #000;
+            background-color: #f9f9f9;
+            font-style: italic;
+        }
+
+        blockquote p {
+            margin: 0;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #000;
+            margin: 20pt 0;
+        }
+
+        .check {
+            display: inline-block;
+            width: 12pt;
+            text-align: center;
+        }
+
+        .intro {
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 20pt;
+        }
+
+        .section-intro {
+            font-weight: bold;
+            margin-bottom: 12pt;
+        }
+
+        table[align="center"] {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .concept {
+            font-weight: bold;
+        }
+
+        @media print {
+            body {
+                font-size: 10pt;
+            }
+
+            h1 {
+                font-size: 18pt;
+            }
+
+            h2 {
+                font-size: 12pt;
+            }
+
+            table {
+                font-size: 9pt;
+            }
+
+            th, td {
+                padding: 4pt;
+            }
+
+            blockquote {
+                background-color: #fff;
+            }
+
+            a {
+                text-decoration: none;
+                color: #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Panel de Reportes Financieros</h1>
+    <p class="intro">CrediFácil</p>
+
+    <h2>¿Qué problema resuelve?</h2>
+    <p>Hoy el administrador de CrediFácil no tiene una forma clara de saber:</p>
+    <ul>
+        <li>Si el negocio está generando ganancias o pérdidas</li>
+        <li>Cuánto capital tiene disponible para seguir aprobando créditos</li>
+        <li>Cuánto han vendido y recaudado los comercios aliados cada mes</li>
+        <li>Si tiene liquidez suficiente para los próximos meses</li>
+    </ul>
+    <p>Este panel resuelve eso en una sola pantalla.</p>
+
+    <hr>
+
+    <h2>¿Qué va a mostrar el panel?</h2>
+
+    <h3>1. Resumen de capital</h3>
+    <p>Una vista clara del dinero del negocio:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Capital total</strong></td>
+                <td>El dinero con el que opera CrediFácil</td>
+            </tr>
+            <tr>
+                <td><strong>Capital prestado</strong></td>
+                <td>Lo que está actualmente en manos de los clientes</td>
+            </tr>
+            <tr>
+                <td><strong>Capital reservado</strong></td>
+                <td>Lo que los clientes aún pueden gastar (debe estar siempre disponible en caja)</td>
+            </tr>
+            <tr>
+                <td><strong>Capital libre</strong></td>
+                <td>Lo que puede prestarse a nuevos clientes hoy</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <blockquote>
+        <p><strong>Ejemplo:</strong> Si CrediFácil tiene $20,000,000 de capital, tiene $8,200,000 comprometidos en créditos activos y $2,120,000 reservados para cupos disponibles, entonces solo puede aprobar créditos nuevos por hasta $11,800,000.</p>
+    </blockquote>
+
+    <h3>2. Estado mes a mes por comercio aliado</h3>
+    <p>Por cada comercio, el panel muestra el <strong>resumen del mes en curso</strong>:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Ventas generadas</strong></td>
+                <td>Total de compras aprobadas con crédito CrediFácil en el mes</td>
+            </tr>
+            <tr>
+                <td><strong>Recaudo del mes</strong></td>
+                <td>Total de cuotas pagadas por los clientes al comercio en el mes</td>
+            </tr>
+            <tr>
+                <td><strong>Cruce de cuentas</strong></td>
+                <td>Diferencia entre ventas y recaudo</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><strong>¿Cómo funciona el cruce?</strong></p>
+    <ul>
+        <li>Si el recaudo es <strong>menor</strong> que las ventas → el comercio <strong>le debe</strong> esa diferencia a CrediFácil</li>
+        <li>Si el recaudo es <strong>mayor</strong> que las ventas → CrediFácil <strong>le debe</strong> esa diferencia al comercio</li>
+    </ul>
+
+    <blockquote>
+        <p>Esto se resetea cada mes. El historial de meses anteriores queda guardado para consulta.</p>
+    </blockquote>
+
+    <h3>3. Proyección de flujo de caja</h3>
+    <p>El panel permite seleccionar un horizonte de tiempo (1, 3, 6 o 12 meses) y muestra:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Cuánto voy a cobrar</strong></td>
+                <td>Suma de cuotas programadas que vencen en ese período</td>
+            </tr>
+            <tr>
+                <td><strong>Cuánto voy a pagar</strong></td>
+                <td>Pagos programados a los comercios en ese período</td>
+            </tr>
+            <tr>
+                <td><strong>Flujo neto</strong></td>
+                <td>Si el negocio tendrá o no dinero suficiente en ese período</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>Esto permite anticipar si se necesita más capital antes de quedarse corto.</p>
+
+    <h3>4. Alerta de cuotas máximas</h3>
+    <p>El panel calcula automáticamente:</p>
+    <blockquote>
+        <p><em>"Con el capital disponible actual, el máximo de cuotas que puedes ofrecer sin riesgo de quedarte sin liquidez es de X meses."</em></p>
+    </blockquote>
+    <p>Si se aprueba un crédito con más cuotas de las recomendadas, el sistema muestra una advertencia.</p>
+
+    <h3>5. Estados financieros del negocio</h3>
+    <p>Un resumen ejecutivo mensual con:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Indicador</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Capital vigente</strong></td>
+                <td>Lo que está activo en créditos</td>
+            </tr>
+            <tr>
+                <td><strong>Intereses generados</strong></td>
+                <td>Ganancia real del período</td>
+            </tr>
+            <tr>
+                <td><strong>Utilidad neta</strong></td>
+                <td>Ingresos menos gastos operativos</td>
+            </tr>
+            <tr>
+                <td><strong>Rentabilidad</strong></td>
+                <td>% de retorno sobre el capital invertido</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>6. Simulador de riesgo</h3>
+    <p>Permite evaluar, antes de aprobar un crédito, cuánto capital queda expuesto si ese cliente no paga.</p>
+
+    <hr>
+
+    <h2>¿Cómo funciona el sistema por detrás?</h2>
+    <p>El panel <strong>no hace consultas lentas</strong> cada vez que se abre. En cambio:</p>
+    <ul>
+        <li>Los datos se actualizan automáticamente cada vez que ocurre algo (una venta, un pago de cuota, un pago de comercio)</li>
+        <li>El panel carga instantáneamente porque lee datos ya calculados</li>
+        <li>Una vez al día, en la madrugada, el sistema verifica y actualiza todo de forma completa</li>
+    </ul>
+    <p>Esto garantiza que el panel sea siempre rápido y confiable.</p>
+
+    <hr>
+
+    <h2>¿Qué necesita el cliente configurar?</h2>
+    <p>Solo un dato inicial:</p>
+    <blockquote>
+        <p><strong>Capital inicial de operación:</strong> el monto con el que CrediFácil arranca a operar. A partir de ahí, el sistema calcula todo automáticamente.</p>
+    </blockquote>
+    <p>Opcionalmente:</p>
+    <ul>
+        <li><strong>Porcentaje de reserva mínima:</strong> % del capital que no se presta (colchón de seguridad). Por defecto: 20%.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Pantallas que se van a crear o modificar</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Pantalla</th>
+                <th>Cambio</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Dashboard (inicio)</strong></td>
+                <td>Se reemplaza la pantalla en blanco por el panel financiero completo</td>
+            </tr>
+            <tr>
+                <td><strong>Detalle por aliado</strong></td>
+                <td>Se agrega la vista mensual de ventas vs recaudo y cruce de cuentas</td>
+            </tr>
+            <tr>
+                <td><strong>Configuración</strong></td>
+                <td>Nueva pantalla para ingresar capital inicial y reserva mínima</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Lo que NO hace este panel</h2>
+    <ul>
+        <li>No reemplaza la contabilidad formal del negocio</li>
+        <li>No conecta con sistemas bancarios externos</li>
+        <li>No genera documentos fiscales ni declaraciones de impuestos</li>
+    </ul>
+
+    <hr>
+
+    <h2>Resumen ejecutivo</h2>
+    <p>Con este panel, el administrador de CrediFácil podrá responder en segundos:</p>
+    <ul>
+        <li>✓ ¿Cuánto dinero tengo para prestar hoy?</li>
+        <li>✓ ¿Qué comercio me debe plata este mes?</li>
+        <li>✓ ¿Voy a tener liquidez en los próximos 3 meses?</li>
+        <li>✓ ¿Cuántas cuotas puedo ofrecer sin arriesgar el capital?</li>
+        <li>✓ ¿El negocio está siendo rentable?</li>
+    </ul>
+</body>
+</html>

@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matoxi – Componentes UI (Dark)</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    /* ============================================================
+       PALETA PERSONALIZADA
+       --c-bg-deep:   #011e28  → fondo de página (más oscuro)
+       --c-bg:        #012935  → componentes base (sidebar, navbar, cards)
+       --c-surface:   #013040  → superficies elevadas (inputs, chips, badges)
+       --c-hover:     #014155  → estados hover / active
+       --c-accent:    #4bbb8d  → verde principal (botones, links, focus)
+       --c-accent-h:  #3da87c  → hover del acento
+       Texto → blanco con alpha
+       Bordes → blanco con alpha
+    ============================================================ */
+    :root {
+      --c-bg-deep:   #011e28;
+      --c-bg:        #012935;
+      --c-surface:   #013040;
+      --c-hover:     #014155;
+      --c-accent:    #4bbb8d;
+      --c-accent-h:  #3da87c;
+      --c-accent-rgb: 75, 187, 141;
+
+      --c-text:      rgba(255,255,255,0.90);
+      --c-text-sec:  rgba(255,255,255,0.60);
+      --c-text-mut:  rgba(255,255,255,0.38);
+      --c-text-lbl:  rgba(255,255,255,0.65);
+
+      --c-border:    rgba(255,255,255,0.10);
+      --c-border-s:  rgba(255,255,255,0.18);
+
+      /* semánticos heredados */
+      --c-danger:    #fc185a;
+      --c-warning:   #ffc107;
+      --c-info:      #0dcaf0;
+      --c-violet:    #5a4eba;
+      --c-orange:    #fd7e14;
+
+      /* sobreescribir Bootstrap */
+      --bs-body-bg:        var(--c-bg-deep);
+      --bs-body-color:     var(--c-text);
+      --bs-border-color:   var(--c-border);
+      --bs-primary:        var(--c-accent);
+      --bs-primary-rgb:    var(--c-accent-rgb);
+      --bs-success:        var(--c-accent);
+      --bs-link-color:     var(--c-accent);
+    }
+
+    /* ============================================================ BASE */
+    body {
+      font-size: 14px;
+      font-family: "Noto Sans", sans-serif;
+      letter-spacing: 0.5px;
+      background-color: var(--c-bg-deep);
+      color: var(--c-text);
+      padding: 0; margin: 0;
+    }
+    a { text-decoration: none; color: var(--c-accent); }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--c-hover); border-radius: 4px; }
+
+    /* ============================================================
+       MINI SIDEBAR (70px)
+    ============================================================ */
+    .mini-sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0;
+      width: 70px;
+      background-color: var(--c-bg);
+      border-right: 1px solid var(--c-border);
+      z-index: 12;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .mini-sidebar .user {
+      display: flex; align-items: center; justify-content: center;
+      width: 70px; height: 70px; cursor: pointer;
+    }
+    .mini-sidebar .user-icon,
+    .mini-sidebar .nav-link,
+    .mini-sidebar .footer-icon {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--c-text-sec);
+      width: 45px; height: 45px; border-radius: 50%;
+      transition: all 0.3s; font-size: 22px;
+    }
+    .mini-sidebar .user-icon:hover,
+    .mini-sidebar .nav-link:hover,
+    .mini-sidebar .footer-icon:hover {
+      color: #fff; background-color: var(--c-hover);
+    }
+    .mini-sidebar .nav-link.active-link {
+      color: var(--c-accent); background-color: rgba(var(--c-accent-rgb), 0.12);
+    }
+    .mini-sidebar .quick-menu {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 4px; padding: 8px 0;
+    }
+    .mini-sidebar .mini-footer {
+      display: flex; align-items: center; justify-content: center;
+      width: 70px; height: 70px;
+    }
+
+    /* ============================================================
+       OFFCANVAS SIDEBAR
+    ============================================================ */
+    .sidebar-offcanvas {
+      width: 300px;
+      background-color: var(--c-bg);
+    }
+    .sidebar-offcanvas .offcanvas-header {
+      border-bottom: 1px solid var(--c-border);
+      padding: 1rem 1.25rem;
+    }
+    .sidebar-nav .metismenu { list-style: none; padding: 0; margin: 0; }
+    .sidebar-nav .metismenu li + li { margin-top: 4px; }
+    .sidebar-nav .metismenu a {
+      display: flex; align-items: center;
+      padding: 8px 16px; font-size: 14.5px;
+      color: var(--c-text-sec); border-radius: 0.3rem;
+      transition: all 0.25s ease;
+    }
+    .sidebar-nav .metismenu a .parent-icon { font-size: 21px; }
+    .sidebar-nav .metismenu a .menu-title  { margin-left: 10px; }
+    .sidebar-nav .metismenu a:hover,
+    .sidebar-nav .metismenu a:focus,
+    .sidebar-nav .metismenu .mm-active > a {
+      color: var(--c-accent);
+      background-color: rgba(var(--c-accent-rgb), 0.10);
+    }
+    .menu-label {
+      padding: 18px 16px 5px;
+      color: var(--c-text-mut);
+      text-transform: uppercase; font-size: 11px; letter-spacing: 1px;
+    }
+    .sidebar-nav .submenu { list-style: none; padding: 0; margin: 0 0 0 16px; }
+    .sidebar-nav .submenu a { font-size: 13px; padding: 5px 16px 5px 12px; }
+
+    /* ============================================================
+       TOP NAVBAR
+    ============================================================ */
+    .top-header .navbar {
+      background-color: var(--c-bg);
+      height: 70px;
+      position: fixed; left: 70px; right: 0; top: 0;
+      padding: 0 1.5rem; z-index: 10;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+      display: flex; align-items: center;
+      border-bottom: 1px solid var(--c-border);
+    }
+    .btn-toggle a {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--c-text-sec); width: 45px; height: 45px;
+      border-radius: 50%; transition: all 0.3s; font-size: 24px;
+    }
+    .btn-toggle a:hover { color: #fff; background-color: var(--c-hover); }
+    .nav-right-links .nav-link {
+      display: flex; align-items: center; justify-content: center;
+      color: var(--c-text-sec); width: 45px; height: 45px;
+      border-radius: 50%; transition: all 0.3s; position: relative;
+    }
+    .nav-right-links .nav-link:hover { color: #fff; background-color: var(--c-hover); }
+    .badge-notify {
+      position: absolute; top: 2px; right: 3px;
+      font-size: 10px; color: #fff; border-radius: 50%;
+      width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+      background-color: var(--c-danger); font-weight: 600;
+    }
+    .badge-notify.green { background-color: var(--c-accent); }
+
+    /* search */
+    .search-bar .form-control {
+      background-color: var(--c-surface);
+      border: 1px solid var(--c-border);
+      color: var(--c-text); border-radius: 2rem; padding: 0.45rem 1rem; font-size: 13px;
+    }
+    .search-bar .form-control:focus {
+      box-shadow: none; border-color: var(--c-accent);
+      background-color: var(--c-surface);
+    }
+
+    /* ============================================================
+       MAIN CONTENT
+    ============================================================ */
+    .main-wrapper { margin-top: 70px; margin-left: 70px; flex: 1; }
+    .main-content { padding: 1.5rem; }
+
+    /* ============================================================
+       CARDS
+    ============================================================ */
+    .card {
+      background-color: var(--c-bg);
+      border: 1px solid var(--c-border) !important;
+      border-radius: 0.6rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      margin-bottom: 1.5rem;
+    }
+    .card-header {
+      background-color: transparent;
+      border-bottom: 1px solid var(--c-border);
+      padding: 1rem 1.25rem;
+    }
+    .card-title { color: var(--c-text); font-size: 15px; font-weight: 600; }
+
+    /* stat card */
+    .stat-card .icon-box {
+      width: 52px; height: 52px; border-radius: 0.5rem;
+      display: flex; align-items: center; justify-content: center; font-size: 26px;
+    }
+    .stat-card .stat-value { font-size: 24px; font-weight: 600; color: var(--c-text); }
+    .stat-card .stat-label { font-size: 13px; color: var(--c-text-sec); }
+    .stat-card .trend-up   { color: var(--c-accent); font-size: 13px; }
+    .stat-card .trend-down { color: var(--c-danger);  font-size: 13px; }
+
+    /* ============================================================
+       BUTTONS
+    ============================================================ */
+    .btn { font-weight: 500; letter-spacing: 0.5px; }
+
+    /* accent (primary) */
+    .btn-accent         { color: #fff; background-color: var(--c-accent); border-color: var(--c-accent); }
+    .btn-accent:hover   { background-color: var(--c-accent-h); border-color: var(--c-accent-h); color: #fff; }
+    .btn-outline-accent { color: var(--c-accent); border-color: var(--c-accent); }
+    .btn-outline-accent:hover { background-color: var(--c-accent); color: #012935; border-color: var(--c-accent); }
+    .btn-inverse-accent { color: var(--c-accent); background-color: rgba(var(--c-accent-rgb),.14); border: 0; }
+    .btn-inverse-accent:hover { background-color: rgba(var(--c-accent-rgb),.24); color: var(--c-accent); }
+
+    /* Bootstrap overrides para que btn-primary use el acento */
+    .btn-primary         { --bs-btn-bg: #4bbb8d; --bs-btn-border-color: #4bbb8d; --bs-btn-color: #012935; --bs-btn-hover-bg: #3da87c; --bs-btn-hover-border-color: #3da87c; --bs-btn-hover-color: #012935; }
+    .btn-outline-primary { --bs-btn-color: #4bbb8d; --bs-btn-border-color: #4bbb8d; --bs-btn-hover-bg: #4bbb8d; --bs-btn-hover-color: #012935; }
+
+    /* danger */
+    .btn-danger           { --bs-btn-bg: #fc185a; --bs-btn-border-color: #fc185a; --bs-btn-hover-bg: #ef0e4e; }
+    .btn-outline-danger   { --bs-btn-color: #fc185a; --bs-btn-border-color: #fc185a; --bs-btn-hover-bg: #fc185a; --bs-btn-hover-color: #fff; }
+    .btn-inverse-danger   { color: #fc185a; background-color: rgba(252,24,90,.13); border: 0; }
+    .btn-inverse-danger:hover { background-color: rgba(252,24,90,.23); color: #fc185a; }
+
+    /* success = acento */
+    .btn-success          { --bs-btn-bg: #4bbb8d; --bs-btn-border-color: #4bbb8d; --bs-btn-color: #012935; --bs-btn-hover-bg: #3da87c; }
+    .btn-outline-success  { --bs-btn-color: #4bbb8d; --bs-btn-border-color: #4bbb8d; --bs-btn-hover-bg: #4bbb8d; --bs-btn-hover-color: #012935; }
+    .btn-inverse-success  { color: var(--c-accent); background-color: rgba(var(--c-accent-rgb),.13); border: 0; }
+    .btn-inverse-success:hover { background-color: rgba(var(--c-accent-rgb),.23); }
+
+    /* warning / info / secondary */
+    .btn-inverse-warning  { color: #ffc107; background-color: rgba(255,193,7,.13); border: 0; }
+    .btn-inverse-warning:hover { background-color: rgba(255,193,7,.23); }
+    .btn-inverse-info     { color: #0dcaf0; background-color: rgba(13,202,240,.13); border: 0; }
+    .btn-inverse-info:hover { background-color: rgba(13,202,240,.23); }
+    .btn-inverse-secondary { color: rgba(255,255,255,.6); background-color: rgba(255,255,255,.08); border: 0; }
+    .btn-inverse-secondary:hover { background-color: rgba(255,255,255,.14); }
+
+    /* violet */
+    .btn-violet         { color: #fff; background-color: var(--c-violet); border-color: var(--c-violet); }
+    .btn-violet:hover   { background-color: #4e44a5; color: #fff; }
+    .btn-outline-violet { color: var(--c-violet); border-color: var(--c-violet); }
+    .btn-outline-violet:hover { background-color: var(--c-violet); color: #fff; }
+
+    /* white alpha button */
+    .btn-ghost {
+      color: rgba(255,255,255,.75); background-color: rgba(255,255,255,.08); border: 1px solid var(--c-border);
+    }
+    .btn-ghost:hover { background-color: rgba(255,255,255,.14); color: #fff; }
+
+    /* ============================================================
+       BADGES
+    ============================================================ */
+    .badge { font-size: 11.5px; font-weight: 500; letter-spacing: 0.3px; }
+    .bg-accent   { background-color: var(--c-accent) !important; color: #012935 !important; }
+    .bg-success  { background-color: var(--c-accent) !important; color: #012935 !important; }
+    .bg-danger   { background-color: var(--c-danger)  !important; }
+    .bg-violet   { background-color: var(--c-violet)  !important; }
+    .bg-orange   { background-color: var(--c-orange)  !important; }
+    .bg-white-10 { background-color: rgba(255,255,255,.10) !important; color: rgba(255,255,255,.75) !important; }
+    .bg-white-20 { background-color: rgba(255,255,255,.20) !important; color: #fff !important; }
+
+    .badge-soft-accent   { background-color: rgba(75,187,141,.15);  color: var(--c-accent); }
+    .badge-soft-danger   { background-color: rgba(252,24,90,.15);   color: #fc185a; }
+    .badge-soft-warning  { background-color: rgba(255,193,7,.15);   color: #ffc107; }
+    .badge-soft-info     { background-color: rgba(13,202,240,.15);  color: #0dcaf0; }
+    .badge-soft-violet   { background-color: rgba(90,78,186,.15);   color: #a89cef; }
+    .badge-soft-white    { background-color: rgba(255,255,255,.10); color: rgba(255,255,255,.80); }
+
+    /* ============================================================
+       CHIPS
+    ============================================================ */
+    .chip {
+      display: inline-flex; align-items: center;
+      height: 32px; padding: 0 12px; gap: 6px;
+      font-size: 13px; font-weight: 500;
+      color: var(--c-text-sec);
+      background-color: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: 16px; cursor: pointer; transition: all 0.3s;
+    }
+    .chip:hover { background-color: var(--c-hover); color: var(--c-text); }
+    .chip img   { width: 28px; height: 28px; border-radius: 50%; margin-left: -6px; }
+
+    /* ============================================================
+       PROGRESS
+    ============================================================ */
+    .progress { background-color: rgba(255,255,255,.08); border-radius: 2rem; height: 6px; }
+    .progress-bar { border-radius: 2rem; }
+    .bg-primary .progress-bar,
+    .progress-bar.bg-accent { background-color: var(--c-accent) !important; }
+
+    /* ============================================================
+       ALERTS
+    ============================================================ */
+    .alert { border: 0; border-left: 3px solid; border-radius: 0.5rem; font-size: 14px; }
+    .alert-accent  { background-color: rgba(75,187,141,.10); border-left-color: var(--c-accent); color: var(--c-accent); }
+    .alert-primary { background-color: rgba(75,187,141,.10); border-left-color: var(--c-accent); color: var(--c-accent); }
+    .alert-success { background-color: rgba(75,187,141,.10); border-left-color: var(--c-accent); color: var(--c-accent); }
+    .alert-danger  { background-color: rgba(252,24,90,.10);  border-left-color: var(--c-danger); color: var(--c-danger); }
+    .alert-warning { background-color: rgba(255,193,7,.10);  border-left-color: var(--c-warning); color: var(--c-warning); }
+    .alert-info    { background-color: rgba(13,202,240,.10); border-left-color: var(--c-info); color: var(--c-info); }
+    .alert-ghost   { background-color: rgba(255,255,255,.06); border-left-color: rgba(255,255,255,.30); color: var(--c-text); }
+
+    /* ============================================================
+       TABLES
+    ============================================================ */
+    .table { color: var(--c-text); }
+    .table thead { font-size: 0.78rem; text-transform: uppercase; font-weight: 500; color: var(--c-text-mut); }
+    .table td, .table th { border-color: var(--c-border); padding: 0.8rem 1rem; vertical-align: middle; }
+    .table-hover > tbody > tr:hover > * { background-color: var(--c-surface); }
+    .product-title    { font-size: 0.94rem; font-weight: 500; color: var(--c-text); }
+    .product-category { font-size: 0.78rem; color: var(--c-text-sec); }
+    .btn-tags {
+      font-size: 0.72rem; background-color: var(--c-surface); color: var(--c-text-sec);
+      padding: 2px 8px; text-transform: uppercase; font-weight: 500; border-radius: 2px; border: 0;
+    }
+    .product-rating {
+      font-size: 0.8rem; background-color: var(--c-surface);
+      padding: 2px 6px; border-radius: 4px;
+      border: 1px solid var(--c-border); font-weight: 500;
+    }
+
+    /* ============================================================
+       FORMS
+    ============================================================ */
+    .form-control, .form-select {
+      background-color: var(--c-surface);
+      border: 1px solid var(--c-border);
+      color: var(--c-text); font-size: 14px;
+    }
+    .form-control:focus, .form-select:focus {
+      background-color: var(--c-surface);
+      border-color: var(--c-accent); color: var(--c-text);
+      box-shadow: 0 0 0 0.2rem rgba(var(--c-accent-rgb),.20);
+    }
+    .form-control::placeholder { color: var(--c-text-mut) !important; opacity: 1 !important; }
+    .form-label   { font-size: 13px; font-weight: 500; color: var(--c-text-lbl); margin-bottom: 6px; }
+    .form-text    { font-size: 12px; color: var(--c-text-mut); }
+    .input-group-text {
+      background-color: var(--c-hover); border-color: var(--c-border); color: var(--c-text-sec);
+    }
+    .form-check-input        { background-color: var(--c-surface); border-color: var(--c-border-s); }
+    .form-check-input:checked { background-color: var(--c-accent); border-color: var(--c-accent); }
+    .form-check-input:focus   { box-shadow: 0 0 0 0.2rem rgba(var(--c-accent-rgb),.25); }
+    .form-range::-webkit-slider-thumb { background: var(--c-accent); }
+
+    /* ============================================================
+       NOTIFICATIONS DROPDOWN
+    ============================================================ */
+    .dropdown-notify {
+      background-color: var(--c-bg);
+      border: 1px solid var(--c-border);
+    }
+    .notify-title { font-size: 15px; font-weight: 500; color: var(--c-text); }
+    .notify-desc  { font-size: 13px; color: var(--c-text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+    .notify-time  { font-size: 12px; color: var(--c-text-mut); }
+    .user-wrapper {
+      width: 42px; height: 42px;
+      background-color: var(--c-surface); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 600; flex-shrink: 0;
+    }
+    .option-btn {
+      width: 35px; height: 35px; border-radius: 50%;
+      background-color: var(--c-surface); border: 0;
+      color: var(--c-text-sec);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: 0.2s;
+    }
+    .option-btn:hover { background-color: var(--c-hover); color: var(--c-text); }
+
+    /* ============================================================
+       DROPDOWN APPS
+    ============================================================ */
+    .dropdown-apps {
+      background-color: var(--c-bg);
+      border: 1px solid var(--c-border);
+    }
+    .app-wrapper { padding: 0.75rem; border-radius: 0.5rem; cursor: pointer; text-align: center; transition: 0.2s; }
+    .app-wrapper:hover { background-color: var(--c-surface); }
+    .app-name { font-size: 12px; color: var(--c-text-sec); margin-top: 4px; }
+
+    /* ============================================================
+       DROPDOWN MENU
+    ============================================================ */
+    .dropdown-menu {
+      background-color: var(--c-bg);
+      border: 1px solid var(--c-border);
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    .dropdown-item { color: var(--c-text-sec); font-size: 14px; }
+    .dropdown-item:hover { background-color: var(--c-surface); color: var(--c-text); }
+    .dropdown-divider { border-color: var(--c-border); }
+
+    /* ============================================================
+       SEPARATOR
+    ============================================================ */
+    .separator { display: flex; align-items: center; }
+    .separator .line { height: 1px; flex: 1; background-color: var(--c-border); }
+    .separator p { padding: 0 1rem; color: var(--c-text-mut); font-size: 13px; }
+
+    /* ============================================================
+       TRANSACTION LIST
+    ============================================================ */
+    .transaction-icon {
+      width: 42px; height: 42px; border-radius: 0.5rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .tx-label  { font-size: 14px; font-weight: 500; color: var(--c-text); }
+    .tx-date   { font-size: 12px; color: var(--c-text-mut); }
+    .tx-amount { font-size: 15px; font-weight: 600; }
+
+    /* ============================================================
+       AVATARES
+    ============================================================ */
+    .avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background-color: var(--c-surface);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 600; color: var(--c-text); font-size: 16px; flex-shrink: 0;
+    }
+    .avatar img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+    .avatar-sm  { width: 32px;  height: 32px;  font-size: 12px; }
+    .avatar-lg  { width: 64px;  height: 64px;  font-size: 24px; }
+
+    /* ============================================================
+       PAGE FOOTER
+    ============================================================ */
+    .page-footer {
+      display: flex; align-items: center; justify-content: center;
+      background-color: var(--c-bg);
+      border-top: 1px solid var(--c-border);
+      height: 70px;
+      position: fixed; left: 70px; right: 0; bottom: 0; z-index: 2;
+      font-size: 13px; color: var(--c-text-sec);
+    }
+
+    /* ============================================================
+       HELPERS DE PÁGINA DE COMPONENTES
+    ============================================================ */
+    .section-title {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--c-text-mut); font-weight: 600;
+      padding: 2.5rem 0 1rem;
+      border-bottom: 1px solid var(--c-border); margin-bottom: 1.5rem;
+    }
+    .section-title:first-of-type { padding-top: 0; }
+
+    .demo-box {
+      padding: 1.25rem;
+      background-color: var(--c-bg);
+      border: 1px solid var(--c-border);
+      border-radius: 0.6rem; margin-bottom: 1rem;
+    }
+
+    .swatch {
+      width: 80px; height: 60px; border-radius: 0.5rem;
+      display: flex; align-items: flex-end; padding: 4px 6px;
+    }
+    .swatch span { font-size: 9.5px; font-weight: 600; color: rgba(255,255,255,.80); }
+
+    /* campaign */
+    .campaign-item { margin-bottom: 1rem; }
+    .campaign-label { font-size: 13px; font-weight: 500; color: var(--c-text); }
+    .campaign-value { font-size: 13px; color: var(--c-text-sec); }
+  </style>
+</head>
+<body>
+
+<!-- ===== MINI SIDEBAR ===== -->
+<aside class="mini-sidebar">
+  <div class="user">
+    <div class="user-icon">
+      <span class="material-icons-outlined">account_circle</span>
+    </div>
+  </div>
+  <nav class="quick-menu">
+    <a href="#" class="nav-link active-link" title="Dashboard"><span class="material-icons-outlined">home</span></a>
+    <a href="#" class="nav-link" title="Widgets"><span class="material-icons-outlined">widgets</span></a>
+    <a href="#" class="nav-link" title="eCommerce"><span class="material-icons-outlined">shopping_cart</span></a>
+    <a href="#" class="nav-link" title="Apps"><span class="material-icons-outlined">apps</span></a>
+    <a href="#" class="nav-link" title="Gráficas"><span class="material-icons-outlined">poll</span></a>
+    <a href="#" class="nav-link" title="Tablas"><span class="material-icons-outlined">table_chart</span></a>
+    <a href="#" class="nav-link" title="Formularios"><span class="material-icons-outlined">description</span></a>
+    <a href="#" class="nav-link" title="Páginas"><span class="material-icons-outlined">lock</span></a>
+  </nav>
+  <div class="mini-footer">
+    <div class="footer-icon">
+      <span class="material-icons-outlined">settings</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ===== TOP NAVBAR ===== -->
+<header class="top-header">
+  <nav class="navbar d-flex align-items-center gap-2">
+    <div class="btn-toggle">
+      <a href="#sidebarDemo" data-bs-toggle="offcanvas">
+        <span class="material-icons-outlined">menu</span>
+      </a>
+    </div>
+
+    <div class="search-bar me-auto" style="min-width:220px">
+      <div class="input-group">
+        <span class="input-group-text border-0" style="background:transparent;color:var(--c-text-mut);">
+          <span class="material-icons-outlined" style="font-size:20px">search</span>
+        </span>
+        <input type="text" class="form-control border-0 ps-0" placeholder="Buscar..." style="background:transparent;color:var(--c-text);">
+      </div>
+    </div>
+
+    <ul class="nav nav-right-links gap-1">
+      <li class="nav-item">
+        <a href="#" class="nav-link" title="Apps"><span class="material-icons-outlined">apps</span></a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" title="Notificaciones">
+          <span class="material-icons-outlined">notifications</span>
+          <span class="badge-notify">5</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" title="Carrito">
+          <span class="material-icons-outlined">shopping_cart</span>
+          <span class="badge-notify green">8</span>
+        </a>
+      </li>
+      <li class="nav-item ms-1">
+        <a href="#" class="d-flex align-items-center gap-2" style="color:var(--c-text);">
+          <div class="avatar avatar-sm" style="background:rgba(75,187,141,.18);color:#4bbb8d;">JD</div>
+          <span style="font-size:13px;font-weight:500;">Jhon David</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<!-- ===== OFFCANVAS SIDEBAR ===== -->
+<div class="offcanvas offcanvas-start sidebar-offcanvas" tabindex="-1" id="sidebarDemo">
+  <div class="offcanvas-header">
+    <h6 class="offcanvas-title fw-bold" style="color:var(--c-text);">Matoxi Admin</h6>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-2">
+    <nav class="sidebar-nav">
+      <p class="menu-label">Principal</p>
+      <ul class="metismenu">
+        <li>
+          <a href="#" class="mm-active">
+            <span class="material-icons-outlined parent-icon">home</span>
+            <span class="menu-title">Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <span class="material-icons-outlined parent-icon">widgets</span>
+            <span class="menu-title">Widgets</span>
+          </a>
+        </li>
+      </ul>
+      <p class="menu-label">eCommerce</p>
+      <ul class="metismenu">
+        <li>
+          <a href="#">
+            <span class="material-icons-outlined parent-icon">inventory_2</span>
+            <span class="menu-title">Productos</span>
+          </a>
+          <ul class="submenu">
+            <li><a href="#"><span class="material-icons-outlined me-2" style="font-size:16px">chevron_right</span>Lista</a></li>
+            <li><a href="#"><span class="material-icons-outlined me-2" style="font-size:16px">chevron_right</span>Agregar</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#">
+            <span class="material-icons-outlined parent-icon">shopping_bag</span>
+            <span class="menu-title">Órdenes</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <span class="material-icons-outlined parent-icon">people</span>
+            <span class="menu-title">Clientes</span>
+          </a>
+        </li>
+      </ul>
+      <p class="menu-label">Páginas</p>
+      <ul class="metismenu">
+        <li>
+          <a href="#">
+            <span class="material-icons-outlined parent-icon">lock</span>
+            <span class="menu-title">Autenticación</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <span class="material-icons-outlined parent-icon">help_outline</span>
+            <span class="menu-title">Error 404</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-wrapper">
+  <div class="main-content" style="padding-bottom:90px;">
+
+    <!-- BREADCRUMB -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <span class="fw-bold" style="font-size:20px;border-right:1.5px solid var(--c-border);padding-right:1rem;color:var(--c-text);">Componentes UI</span>
+      <nav>
+        <ol class="breadcrumb mb-0" style="font-size:14px;">
+          <li class="breadcrumb-item"><a href="#" style="color:var(--c-accent);">Dashboard</a></li>
+          <li class="breadcrumb-item active" style="color:var(--c-text-sec);">Componentes</li>
+        </ol>
+      </nav>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 1. PALETA -->
+    <!-- ============================================================ -->
+    <p class="section-title">1. Paleta de colores</p>
+    <div class="row g-3 mb-4">
+      <!-- Primarios -->
+      <div class="col-auto">
+        <div class="swatch" style="background:#012935; border:1px solid rgba(255,255,255,.15);">
+          <span>#012935</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Base</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:#011e28; border:1px solid rgba(255,255,255,.15);">
+          <span>#011e28</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Deep</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:#013040; border:1px solid rgba(255,255,255,.15);">
+          <span>#013040</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Surface</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:#014155; border:1px solid rgba(255,255,255,.15);">
+          <span>#014155</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Hover</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:#4bbb8d;">
+          <span>#4bbb8d</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Accent</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:#3da87c;">
+          <span>#3da87c</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Accent H</div>
+      </div>
+      <!-- Blancos con alpha -->
+      <div class="col-auto">
+        <div class="swatch" style="background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.2);">
+          <span style="color:#012935;">w 90%</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Texto</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:rgba(255,255,255,.60);border:1px solid rgba(255,255,255,.2);">
+          <span style="color:#012935;">w 60%</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Sec</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.2);">
+          <span style="color:#012935;">w 38%</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Muted</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.3);">
+          <span>w 10%</span>
+        </div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Border</div>
+      </div>
+      <!-- Semánticos -->
+      <div class="col-auto">
+        <div class="swatch" style="background:#fc185a;"><span>#fc185a</span></div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Danger</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:#ffc107;"><span style="color:#012935;">#ffc107</span></div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Warning</div>
+      </div>
+      <div class="col-auto">
+        <div class="swatch" style="background:#0dcaf0;"><span style="color:#012935;">#0dcaf0</span></div>
+        <div style="font-size:11px;color:var(--c-text-sec);text-align:center;margin-top:5px;">Info</div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 2. TIPOGRAFÍA -->
+    <!-- ============================================================ -->
+    <p class="section-title">2. Tipografía — Noto Sans</p>
+    <div class="row g-3">
+      <div class="col-12">
+        <h1 style="color:var(--c-text);">Heading H1 — 2.5rem / 600</h1>
+        <h2 style="color:var(--c-text);">Heading H2 — 2rem / 600</h2>
+        <h3 style="color:var(--c-text);">Heading H3 — 1.75rem / 600</h3>
+        <h4 style="color:var(--c-text);">Heading H4 — 1.5rem / 600</h4>
+        <h5 style="color:var(--c-text);">Heading H5 — 1.25rem / 500</h5>
+        <h6 style="color:var(--c-text);">Heading H6 — 1rem / 500</h6>
+        <p style="color:var(--c-text);">Texto cuerpo — 14px / 400 / letter-spacing 0.5px.</p>
+        <p style="color:var(--c-text-sec);">Texto secundario — rgba(255,255,255, 0.60)</p>
+        <p style="color:var(--c-text-mut);">Texto muted — rgba(255,255,255, 0.38)</p>
+        <small style="color:var(--c-text-mut);">Small / caption — 12px</small>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 3. STAT CARDS -->
+    <!-- ============================================================ -->
+    <p class="section-title">3. Stat Cards</p>
+    <div class="row g-3">
+      <div class="col-xl-3 col-md-6">
+        <div class="card stat-card">
+          <div class="card-body d-flex align-items-center justify-content-between p-3">
+            <div>
+              <div class="stat-value">$9,568</div>
+              <div class="stat-label">Ventas semanales</div>
+              <div class="trend-down mt-1">
+                <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">arrow_downward</span> 8.6%
+              </div>
+            </div>
+            <div class="icon-box" style="background:rgba(252,24,90,.15);color:#fc185a;">
+              <span class="material-icons-outlined">shopping_cart</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card stat-card">
+          <div class="card-body d-flex align-items-center justify-content-between p-3">
+            <div>
+              <div class="stat-value">85,246</div>
+              <div class="stat-label">Órdenes totales</div>
+              <div class="trend-up mt-1">
+                <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">arrow_upward</span> 12.4%
+              </div>
+            </div>
+            <div class="icon-box" style="background:rgba(75,187,141,.15);color:#4bbb8d;">
+              <span class="material-icons-outlined">receipt_long</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card stat-card">
+          <div class="card-body d-flex align-items-center justify-content-between p-3">
+            <div>
+              <div class="stat-value">$96,147</div>
+              <div class="stat-label">Ingresos</div>
+              <div class="trend-up mt-1">
+                <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">arrow_upward</span> 24.9%
+              </div>
+            </div>
+            <div class="icon-box" style="background:rgba(75,187,141,.15);color:#4bbb8d;">
+              <span class="material-icons-outlined">monetization_on</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card stat-card">
+          <div class="card-body d-flex align-items-center justify-content-between p-3">
+            <div>
+              <div class="stat-value">97.4K</div>
+              <div class="stat-label">Usuarios totales</div>
+              <div class="trend-up mt-1">
+                <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">arrow_upward</span> 12.5%
+              </div>
+            </div>
+            <div class="icon-box" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.70);">
+              <span class="material-icons-outlined">people</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 4. BUTTONS -->
+    <!-- ============================================================ -->
+    <p class="section-title">4. Botones</p>
+    <div class="demo-box">
+      <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--c-text-mut);" class="mb-2">Sólidos</p>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button class="btn btn-accent">Accent</button>
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn btn-success">Success</button>
+        <button class="btn btn-danger">Danger</button>
+        <button class="btn btn-warning text-dark">Warning</button>
+        <button class="btn btn-info text-dark">Info</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-violet">Violet</button>
+        <button class="btn btn-ghost">Ghost</button>
+      </div>
+      <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--c-text-mut);" class="mb-2">Outline</p>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button class="btn btn-outline-accent">Accent</button>
+        <button class="btn btn-outline-primary">Primary</button>
+        <button class="btn btn-outline-danger">Danger</button>
+        <button class="btn btn-outline-warning">Warning</button>
+        <button class="btn btn-outline-info">Info</button>
+        <button class="btn btn-outline-secondary">Secondary</button>
+        <button class="btn btn-outline-violet">Violet</button>
+      </div>
+      <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--c-text-mut);" class="mb-2">Inverse (soft)</p>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button class="btn btn-inverse-accent">Accent</button>
+        <button class="btn btn-inverse-success">Success</button>
+        <button class="btn btn-inverse-danger">Danger</button>
+        <button class="btn btn-inverse-warning">Warning</button>
+        <button class="btn btn-inverse-info">Info</button>
+        <button class="btn btn-inverse-secondary">Secondary</button>
+      </div>
+      <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--c-text-mut);" class="mb-2">Tamaños + iconos</p>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <button class="btn btn-accent btn-sm">Small</button>
+        <button class="btn btn-accent">Default</button>
+        <button class="btn btn-accent btn-lg">Large</button>
+        <button class="btn btn-accent d-flex align-items-center gap-1">
+          <span class="material-icons-outlined" style="font-size:18px;">check_circle</span> Guardar
+        </button>
+        <button class="btn btn-danger d-flex align-items-center gap-1">
+          <span class="material-icons-outlined" style="font-size:18px;">delete</span> Eliminar
+        </button>
+        <button class="btn btn-ghost d-flex align-items-center gap-1">
+          <span class="material-icons-outlined" style="font-size:18px;">refresh</span> Actualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 5. BADGES -->
+    <!-- ============================================================ -->
+    <p class="section-title">5. Badges</p>
+    <div class="demo-box">
+      <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--c-text-mut);" class="mb-2">Sólidos</p>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="badge bg-accent">Accent</span>
+        <span class="badge bg-success">Success</span>
+        <span class="badge bg-danger">Danger</span>
+        <span class="badge bg-warning text-dark">Warning</span>
+        <span class="badge bg-info text-dark">Info</span>
+        <span class="badge bg-secondary">Secondary</span>
+        <span class="badge bg-violet">Violet</span>
+        <span class="badge bg-orange">Orange</span>
+        <span class="badge bg-white-10">White 10%</span>
+        <span class="badge bg-white-20">White 20%</span>
+      </div>
+      <p style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--c-text-mut);" class="mb-2">Soft</p>
+      <div class="d-flex flex-wrap gap-2">
+        <span class="badge badge-soft-accent rounded-pill">Accent</span>
+        <span class="badge badge-soft-danger rounded-pill">Danger</span>
+        <span class="badge badge-soft-warning rounded-pill">Warning</span>
+        <span class="badge badge-soft-info rounded-pill">Info</span>
+        <span class="badge badge-soft-violet rounded-pill">Violet</span>
+        <span class="badge badge-soft-white rounded-pill">Ghost</span>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 6. ALERTS -->
+    <!-- ============================================================ -->
+    <p class="section-title">6. Alertas</p>
+    <div class="alert alert-accent d-flex align-items-center gap-2">
+      <span class="material-icons-outlined">info</span>
+      <div>Alerta <strong>accent</strong> — información del sistema.</div>
+    </div>
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <span class="material-icons-outlined">cancel</span>
+      <div><strong>Error</strong> — no se pudo completar la operación.</div>
+    </div>
+    <div class="alert alert-warning d-flex align-items-center gap-2">
+      <span class="material-icons-outlined">warning</span>
+      <div><strong>Advertencia</strong> — revisa los datos antes de continuar.</div>
+    </div>
+    <div class="alert alert-info d-flex align-items-center gap-2">
+      <span class="material-icons-outlined">tips_and_updates</span>
+      <div><strong>Info</strong> — proceso completado con éxito.</div>
+    </div>
+    <div class="alert alert-ghost d-flex align-items-center gap-2">
+      <span class="material-icons-outlined">notifications</span>
+      <div><strong>Ghost</strong> — blanco con alpha, para mensajes neutros.</div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 7. CHIPS -->
+    <!-- ============================================================ -->
+    <p class="section-title">7. Chips</p>
+    <div class="demo-box d-flex flex-wrap gap-2">
+      <span class="chip">Bootstrap 5</span>
+      <span class="chip"><span class="material-icons-outlined" style="font-size:16px;color:var(--c-accent);">code</span> React JS</span>
+      <span class="chip"><span class="material-icons-outlined" style="font-size:16px;color:var(--c-accent);">star</span> Vue JS</span>
+      <span class="chip"><span class="material-icons-outlined" style="font-size:16px;">close</span> Angular</span>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 8. PROGRESS BARS -->
+    <!-- ============================================================ -->
+    <p class="section-title">8. Progress Bars</p>
+    <div class="card">
+      <div class="card-body">
+        <div class="campaign-item">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="campaign-label">Angular 12</span><span class="campaign-value">95%</span>
+          </div>
+          <div class="progress"><div class="progress-bar" style="width:95%;background:var(--c-accent);"></div></div>
+        </div>
+        <div class="campaign-item">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="campaign-label">React JS</span><span class="campaign-value">90%</span>
+          </div>
+          <div class="progress"><div class="progress-bar" style="width:90%;background:var(--c-accent);opacity:.85;"></div></div>
+        </div>
+        <div class="campaign-item">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="campaign-label">Vue JS</span><span class="campaign-value">85%</span>
+          </div>
+          <div class="progress"><div class="progress-bar" style="width:85%;background:var(--c-accent);opacity:.70;"></div></div>
+        </div>
+        <div class="campaign-item">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="campaign-label">Bootstrap 5</span><span class="campaign-value">75%</span>
+          </div>
+          <div class="progress"><div class="progress-bar bg-warning" style="width:75%;"></div></div>
+        </div>
+        <div class="campaign-item">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="campaign-label">Django</span><span class="campaign-value">55%</span>
+          </div>
+          <div class="progress"><div class="progress-bar" style="width:55%;background:var(--c-danger);"></div></div>
+        </div>
+        <div class="campaign-item mb-0">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="campaign-label">Python</span><span class="campaign-value">45%</span>
+          </div>
+          <div class="progress"><div class="progress-bar" style="width:45%;background:rgba(255,255,255,.35);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 9. TABLA -->
+    <!-- ============================================================ -->
+    <p class="section-title">9. Tabla de productos</p>
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h6 class="card-title mb-0">Productos populares</h6>
+        <a href="#" class="btn btn-sm btn-inverse-accent">Ver todos</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Ventas</th>
+                <th>Precio</th>
+                <th>Rating</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="product-title">Apple Hand Watch</span></td>
+                <td><span class="product-category">Electrónica</span></td>
+                <td>258</td>
+                <td class="fw-500">$199</td>
+                <td><span class="product-rating">⭐ 4.8</span></td>
+                <td><span class="badge badge-soft-accent rounded-pill">Activo</span></td>
+                <td>
+                  <button class="btn btn-sm btn-inverse-accent me-1"><span class="material-icons-outlined" style="font-size:16px;">visibility</span></button>
+                  <button class="btn btn-sm btn-inverse-danger"><span class="material-icons-outlined" style="font-size:16px;">delete</span></button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="product-title">Mobile Phone Set</span></td>
+                <td><span class="product-category">Electrónica</span></td>
+                <td>169</td>
+                <td>$159</td>
+                <td><span class="product-rating">⭐ 4.5</span></td>
+                <td><span class="badge badge-soft-accent rounded-pill">Activo</span></td>
+                <td>
+                  <button class="btn btn-sm btn-inverse-accent me-1"><span class="material-icons-outlined" style="font-size:16px;">visibility</span></button>
+                  <button class="btn btn-sm btn-inverse-danger"><span class="material-icons-outlined" style="font-size:16px;">delete</span></button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="product-title">Fancy Chair</span></td>
+                <td><span class="product-category">Muebles</span></td>
+                <td>268</td>
+                <td>$678</td>
+                <td><span class="product-rating">⭐ 4.2</span></td>
+                <td><span class="badge badge-soft-warning rounded-pill">Pendiente</span></td>
+                <td>
+                  <button class="btn btn-sm btn-inverse-accent me-1"><span class="material-icons-outlined" style="font-size:16px;">visibility</span></button>
+                  <button class="btn btn-sm btn-inverse-danger"><span class="material-icons-outlined" style="font-size:16px;">delete</span></button>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="product-title">Laptop Full HD</span></td>
+                <td><span class="product-category">Electrónica</span></td>
+                <td>489</td>
+                <td>$398</td>
+                <td><span class="product-rating">⭐ 4.9</span></td>
+                <td><span class="badge badge-soft-danger rounded-pill">Agotado</span></td>
+                <td>
+                  <button class="btn btn-sm btn-inverse-accent me-1"><span class="material-icons-outlined" style="font-size:16px;">visibility</span></button>
+                  <button class="btn btn-sm btn-inverse-danger"><span class="material-icons-outlined" style="font-size:16px;">delete</span></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 10. TRANSACCIONES -->
+    <!-- ============================================================ -->
+    <p class="section-title">10. Lista de transacciones</p>
+    <div class="card">
+      <div class="card-header">
+        <h6 class="card-title mb-0">Transacciones recientes</h6>
+      </div>
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid var(--c-border);">
+          <div class="d-flex align-items-center gap-3">
+            <div class="transaction-icon" style="background:rgba(75,187,141,.15);color:#4bbb8d;">
+              <span class="material-icons-outlined">shopping_cart</span>
+            </div>
+            <div>
+              <div class="tx-label">Compra en tienda</div>
+              <div class="tx-date">03/10/2022 – 2:15 AM</div>
+            </div>
+          </div>
+          <div class="tx-amount" style="color:var(--c-accent);">+$2,456</div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid var(--c-border);">
+          <div class="d-flex align-items-center gap-3">
+            <div class="transaction-icon" style="background:rgba(252,24,90,.15);color:#fc185a;">
+              <span class="material-icons-outlined">credit_card</span>
+            </div>
+            <div>
+              <div class="tx-label">Pago tarjeta</div>
+              <div class="tx-date">02/10/2022 – 11:30 PM</div>
+            </div>
+          </div>
+          <div class="tx-amount" style="color:var(--c-danger);">-$890</div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between py-2" style="border-bottom:1px solid var(--c-border);">
+          <div class="d-flex align-items-center gap-3">
+            <div class="transaction-icon" style="background:rgba(75,187,141,.15);color:#4bbb8d;">
+              <span class="material-icons-outlined">account_balance</span>
+            </div>
+            <div>
+              <div class="tx-label">Transferencia bancaria</div>
+              <div class="tx-date">01/10/2022 – 9:00 AM</div>
+            </div>
+          </div>
+          <div class="tx-amount" style="color:var(--c-accent);">+$24,568</div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between py-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="transaction-icon" style="background:rgba(255,193,7,.15);color:#ffc107;">
+              <span class="material-icons-outlined">card_giftcard</span>
+            </div>
+            <div>
+              <div class="tx-label">Regalo digital</div>
+              <div class="tx-date">30/09/2022 – 3:45 PM</div>
+            </div>
+          </div>
+          <div class="tx-amount" style="color:var(--c-warning);">+$150</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 11. FORMULARIOS -->
+    <!-- ============================================================ -->
+    <p class="section-title">11. Formularios</p>
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header"><h6 class="card-title mb-0">Formulario básico</h6></div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Nombre completo</label>
+              <input type="text" class="form-control" placeholder="Ej: Jhon David">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Correo electrónico</label>
+              <div class="input-group">
+                <span class="input-group-text"><span class="material-icons-outlined" style="font-size:18px;">mail</span></span>
+                <input type="email" class="form-control" placeholder="correo@ejemplo.com">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Contraseña</label>
+              <div class="input-group">
+                <input type="password" class="form-control" placeholder="••••••••">
+                <span class="input-group-text"><span class="material-icons-outlined" style="font-size:18px;">visibility</span></span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">País</label>
+              <select class="form-select">
+                <option>Colombia</option>
+                <option>México</option>
+                <option>Argentina</option>
+                <option>España</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Mensaje</label>
+              <textarea class="form-control" rows="3" placeholder="Escribe aquí..."></textarea>
+            </div>
+            <div class="mb-3 d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="ch1" checked>
+                <label class="form-check-label" for="ch1" style="color:var(--c-text-sec);">Recordarme</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="radio1" id="r1" checked>
+                <label class="form-check-label" for="r1" style="color:var(--c-text-sec);">Opción A</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="radio1" id="r2">
+                <label class="form-check-label" for="r2" style="color:var(--c-text-sec);">Opción B</label>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-accent">Guardar</button>
+              <button class="btn btn-ghost">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-header"><h6 class="card-title mb-0">Validación + estados</h6></div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Campo válido</label>
+              <input type="text" class="form-control is-valid" value="usuario@correo.com">
+              <div class="valid-feedback" style="color:var(--c-accent);">¡Correcto!</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Campo inválido</label>
+              <input type="text" class="form-control is-invalid" value="texto mal">
+              <div class="invalid-feedback">Este campo no es válido.</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Deshabilitado</label>
+              <input type="text" class="form-control" disabled value="No editable">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Solo lectura</label>
+              <input type="text" class="form-control" readonly value="Solo lectura">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Rango</label>
+              <input type="range" class="form-range" min="0" max="100" value="65">
+            </div>
+            <div class="mb-0">
+              <label class="form-label d-block">Switches</label>
+              <div class="form-check form-switch d-inline-block me-3">
+                <input class="form-check-input" type="checkbox" checked>
+                <label class="form-check-label" style="color:var(--c-text-sec);">Activo</label>
+              </div>
+              <div class="form-check form-switch d-inline-block">
+                <input class="form-check-input" type="checkbox">
+                <label class="form-check-label" style="color:var(--c-text-sec);">Inactivo</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 12. NOTIFICACIONES (estático) -->
+    <!-- ============================================================ -->
+    <p class="section-title">12. Dropdown de notificaciones</p>
+    <div class="dropdown-notify p-0" style="max-width:380px;overflow:hidden;border-radius:1rem;">
+      <div class="d-flex align-items-center justify-content-between p-3" style="border-bottom:1px solid var(--c-border);">
+        <h6 class="mb-0 fw-600" style="color:var(--c-text);">Notificaciones</h6>
+        <div class="d-flex gap-1">
+          <button class="option-btn"><span class="material-icons-outlined" style="font-size:18px;">archive</span></button>
+          <button class="option-btn"><span class="material-icons-outlined" style="font-size:18px;">done_all</span></button>
+          <button class="option-btn"><span class="material-icons-outlined" style="font-size:18px;">more_vert</span></button>
+        </div>
+      </div>
+      <div class="d-flex align-items-start gap-3 p-3" style="border-bottom:1px solid var(--c-border);">
+        <div class="user-wrapper" style="background:rgba(75,187,141,.15);color:#4bbb8d;font-size:22px;">
+          <span class="material-icons-outlined">person</span>
+        </div>
+        <div class="flex-grow-1" style="min-width:0;">
+          <div class="notify-title">Nuevo usuario registrado</div>
+          <div class="notify-desc">María García se ha registrado en la plataforma.</div>
+          <div class="notify-time">Hace 5 minutos</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-start gap-3 p-3" style="border-bottom:1px solid var(--c-border);">
+        <div class="user-wrapper" style="background:rgba(75,187,141,.15);color:#4bbb8d;font-size:22px;">
+          <span class="material-icons-outlined">check_circle</span>
+        </div>
+        <div class="flex-grow-1" style="min-width:0;">
+          <div class="notify-title">Pago aprobado</div>
+          <div class="notify-desc">Transacción #4521 procesada exitosamente.</div>
+          <div class="notify-time">Hace 1 hora</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-start gap-3 p-3">
+        <div class="user-wrapper" style="background:rgba(252,24,90,.15);color:#fc185a;font-size:22px;">
+          <span class="material-icons-outlined">warning</span>
+        </div>
+        <div class="flex-grow-1" style="min-width:0;">
+          <div class="notify-title">Alerta de sistema</div>
+          <div class="notify-desc">El servidor reporta alta carga de CPU al 92%.</div>
+          <div class="notify-time">Ayer</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 13. AVATARES -->
+    <!-- ============================================================ -->
+    <p class="section-title">13. Avatares</p>
+    <div class="demo-box d-flex flex-wrap align-items-end gap-3">
+      <div class="avatar avatar-lg" style="background:rgba(75,187,141,.18);color:#4bbb8d;">JD</div>
+      <div class="avatar" style="background:rgba(75,187,141,.12);color:#4bbb8d;">MG</div>
+      <div class="avatar avatar-sm" style="background:rgba(252,24,90,.15);color:#fc185a;">KL</div>
+      <div class="avatar avatar-sm" style="background:rgba(255,193,7,.15);color:#ffc107;">PN</div>
+      <div class="avatar avatar-lg"><img src="https://i.pravatar.cc/64?img=1" alt=""></div>
+      <div class="avatar"><img src="https://i.pravatar.cc/42?img=5" alt=""></div>
+      <!-- stack -->
+      <div class="d-flex" style="margin-left:1rem;">
+        <div class="avatar avatar-sm" style="background:#4bbb8d;color:#012935;z-index:4;border:2px solid #012935;">A</div>
+        <div class="avatar avatar-sm" style="background:#3da87c;color:#012935;z-index:3;border:2px solid #012935;margin-left:-10px;">B</div>
+        <div class="avatar avatar-sm" style="background:rgba(75,187,141,.30);color:#4bbb8d;z-index:2;border:2px solid #012935;margin-left:-10px;">C</div>
+        <div class="avatar avatar-sm" style="background:rgba(255,255,255,.10);color:rgba(255,255,255,.60);z-index:1;border:2px solid #012935;margin-left:-10px;font-size:11px;">+5</div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 14. GRID DE APPS -->
+    <!-- ============================================================ -->
+    <p class="section-title">14. Grid de aplicaciones</p>
+    <div class="dropdown-apps p-2" style="max-width:340px;border-radius:1rem;">
+      <h6 class="p-2 mb-0" style="color:var(--c-text);font-size:14px;font-weight:600;">Aplicaciones</h6>
+      <div class="row g-0">
+        <div class="col-3"><div class="app-wrapper"><span class="material-icons-outlined" style="font-size:28px;color:#EA4335;">mail</span><div class="app-name">Gmail</div></div></div>
+        <div class="col-3"><div class="app-wrapper"><span class="material-icons-outlined" style="font-size:28px;color:#00B0F0;">chat</span><div class="app-name">Skype</div></div></div>
+        <div class="col-3"><div class="app-wrapper"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-accent);">hub</span><div class="app-name">Slack</div></div></div>
+        <div class="col-3"><div class="app-wrapper"><span class="material-icons-outlined" style="font-size:28px;color:#FF0000;">play_circle</span><div class="app-name">YouTube</div></div></div>
+        <div class="col-3"><div class="app-wrapper"><span class="material-icons-outlined" style="font-size:28px;color:#4285F4;">search</span><div class="app-name">Google</div></div></div>
+        <div class="col-3"><div class="app-wrapper"><span class="material-icons-outlined" style="font-size:28px;color:#E1306C;">camera_alt</span><div class="app-name">Instagram</div></div></div>
+        <div class="col-3"><div class="app-wrapper"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-accent);">music_note</span><div class="app-name">Spotify</div></div></div>
+        <div class="col-3"><div class="app-wrapper"><span class="material-icons-outlined" style="font-size:28px;color:rgba(255,255,255,.50);">account_balance_wallet</span><div class="app-name">PayPal</div></div></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 15. SEPARADORES -->
+    <!-- ============================================================ -->
+    <p class="section-title">15. Separadores</p>
+    <div class="demo-box">
+      <div class="separator"><div class="line"></div><p>O continúa con</p><div class="line"></div></div>
+      <div class="separator mt-3"><div class="line"></div><p style="color:var(--c-accent);">Sección nueva</p><div class="line"></div></div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 16. DROPDOWN MENU -->
+    <!-- ============================================================ -->
+    <p class="section-title">16. Dropdown menu</p>
+    <div class="demo-box">
+      <div class="dropdown d-inline-block">
+        <button class="btn btn-accent dropdown-toggle" data-bs-toggle="dropdown">Acciones</button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#"><span class="material-icons-outlined me-2" style="font-size:18px;vertical-align:middle;">edit</span>Editar</a></li>
+          <li><a class="dropdown-item" href="#"><span class="material-icons-outlined me-2" style="font-size:18px;vertical-align:middle;">content_copy</span>Duplicar</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#" style="color:var(--c-danger)!important;"><span class="material-icons-outlined me-2" style="font-size:18px;vertical-align:middle;">delete</span>Eliminar</a></li>
+        </ul>
+      </div>
+      <div class="dropdown d-inline-block ms-2">
+        <button class="btn btn-ghost dropdown-toggle" data-bs-toggle="dropdown">Filtrar</button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="#">Todos</a></li>
+          <li><a class="dropdown-item" href="#">Activos</a></li>
+          <li><a class="dropdown-item" href="#">Inactivos</a></li>
+          <li><a class="dropdown-item" href="#">Pendientes</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 17. ICONOGRAFÍA -->
+    <!-- ============================================================ -->
+    <p class="section-title">17. Iconografía — Material Icons Outlined</p>
+    <div class="demo-box">
+      <div class="d-flex flex-wrap gap-3">
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-accent);">home</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">home</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-accent);">check_circle</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">check_circle</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-danger);">cancel</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">cancel</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-warning);">warning</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">warning</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">notifications</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">notif.</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">shopping_cart</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">cart</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">settings</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">settings</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">person</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">person</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">search</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">search</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-danger);">delete</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">delete</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-accent);">edit</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">edit</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">visibility</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">visibility</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">poll</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">poll</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-accent);">monetization_on</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">monetize</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">lock</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">lock</div></div>
+        <div class="text-center" style="width:60px;"><span class="material-icons-outlined" style="font-size:28px;color:var(--c-text-sec);">dark_mode</span><div style="font-size:10px;color:var(--c-text-mut);margin-top:4px;">dark_mode</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PAGE FOOTER -->
+<footer class="page-footer">
+  <span>© 2024 Matoxi Admin — <a href="#" style="color:var(--c-accent);">Codervent</a></span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

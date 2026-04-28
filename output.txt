@@ -1,0 +1,190 @@
+============================================================
+  CREDIFÁCIL - Inspección landlord-creditapi
+  Ruta: ./
+  Fecha: mar 24 feb 2026 11:08:08 -05
+============================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. VERSIONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+▶ PHP:
+PHP 8.5.3 (cli) (built: Feb 12 2026 16:29:14) (NTS)
+Copyright (c) The PHP Group
+Zend Engine v4.5.3, Copyright (c) Zend Technologies
+    with Zend OPcache v8.5.3, Copyright (c), by Zend Technologies
+
+▶ Laravel (composer.json):
+  No encontrado
+
+▶ Composer packages relevantes:
+  Ninguno relevante encontrado
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  2. MODELOS (app/Models)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Carpeta app/Models no encontrada
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  3. MIGRACIONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  No se encontró carpeta database/migrations
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  4. RUTAS API (routes/api.php)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  routes/api.php no encontrado
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  5. CONTROLLERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  6. ESTRUCTURA GENERAL DEL PROYECTO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ./landlord-creditapi/app/Jobs/ProcessScheduledAllyPayments.php
+  ./landlord-creditapi/app/Livewire/ActiveCredits.php
+  ./landlord-creditapi/app/Livewire/AlliesManagement.php
+  ./landlord-creditapi/app/Livewire/AllyConfig.php
+  ./landlord-creditapi/app/Livewire/AllyDetails.php
+  ./landlord-creditapi/app/Livewire/CollectionManagementAllies.php
+  ./landlord-creditapi/app/Livewire/CollectionManagement.php
+  ./landlord-creditapi/app/Livewire/PendingCredits.php
+  ./landlord-creditapi/app/Livewire/PendingTransactions.php
+  ./landlord-creditapi/app/Models/AllyCollectionConfig.php
+  ./landlord-creditapi/app/Models/AllyPayment.php
+  ./landlord-creditapi/app/Models/ClientDocument.php
+  ./landlord-creditapi/app/Models/Client.php
+  ./landlord-creditapi/app/Models/Credit.php
+  ./landlord-creditapi/app/Models/CreditPlan.php
+  ./landlord-creditapi/app/Models/CreditTransaction.php
+  ./landlord-creditapi/app/Models/PaymentLink.php
+  ./landlord-creditapi/app/Models/TenantCompanyInfo.php
+  ./landlord-creditapi/app/Models/TenantDocument.php
+  ./landlord-creditapi/app/Models/User.php
+  ./landlord-creditapi/app/Models/VerificationCode.php
+  ./landlord-creditapi/app/Providers/AppServiceProvider.php
+  ./landlord-creditapi/app/Providers/FortifyServiceProvider.php
+  ./landlord-creditapi/app/Providers/JetstreamServiceProvider.php
+  ./landlord-creditapi/app/Services/VerificationService.php
+  ./landlord-creditapi/app/Services/WompiService.php
+  ./landlord-creditapi/bootstrap/app.php
+  ./landlord-creditapi/bootstrap/cache/packages.php
+  ./landlord-creditapi/bootstrap/cache/services.php
+  ./landlord-creditapi/bootstrap/providers.php
+  ./landlord-creditapi/config/app.php
+  ./landlord-creditapi/config/auth.php
+  ./landlord-creditapi/config/cache.php
+  ./landlord-creditapi/config/database.php
+  ./landlord-creditapi/config/filesystems.php
+  ./landlord-creditapi/config/fortify.php
+  ./landlord-creditapi/config/jetstream.php
+  ./landlord-creditapi/config/logging.php
+  ./landlord-creditapi/config/mail.php
+  ./landlord-creditapi/config/queue.php
+  ./landlord-creditapi/config/sanctum.php
+  ./landlord-creditapi/config/services.php
+  ./landlord-creditapi/config/session.php
+  ./landlord-creditapi/database/factories/UserFactory.php
+  ./landlord-creditapi/database/migrations/0001_01_01_000000_create_users_table.php
+  ./landlord-creditapi/database/migrations/0001_01_01_000001_create_cache_table.php
+  ./landlord-creditapi/database/migrations/0001_01_01_000002_create_jobs_table.php
+  ./landlord-creditapi/database/migrations/2025_11_21_144308_create_clients_table.php
+  ./landlord-creditapi/database/migrations/2025_11_21_144331_create_credit_plans_table.php
+  ./landlord-creditapi/database/migrations/2025_11_21_144331_create_credits_table.php
+  ./landlord-creditapi/database/migrations/2025_11_21_144332_create_credit_transactions_table.php
+  ./landlord-creditapi/database/migrations/2025_11_21_152341_add_two_factor_columns_to_users_table.php
+  ./landlord-creditapi/database/migrations/2025_11_21_152424_create_personal_access_tokens_table.php
+  ./landlord-creditapi/database/migrations/2025_11_23_232945_update_credits_status_enum.php
+  ./landlord-creditapi/database/migrations/2025_11_27_162901_add_credit_adjustment_to_transactions_type.php
+  ./landlord-creditapi/database/migrations/2025_11_29_225211_add_libercol_fields_to_credits_table.php
+  ./landlord-creditapi/database/migrations/2025_12_02_000001_create_verification_codes_table.php
+  ./landlord-creditapi/database/migrations/2025_12_02_000002_create_client_documents_table.php
+  ./landlord-creditapi/database/migrations/2025_12_02_000003_add_phone_verified_at_to_clients_table.php
+  ./landlord-creditapi/database/migrations/2025_12_02_154500_add_pending_verification_to_clients_status.php
+  ./landlord-creditapi/database/migrations/2026_01_14_000001_create_payment_links_table.php
+  ./landlord-creditapi/database/migrations/2026_01_15_005624_create_ally_collection_configs_table.php
+  ./landlord-creditapi/database/migrations/2026_01_16_201928_create_ally_payments_table.php
+  ./landlord-creditapi/database/migrations/2026_01_16_202050_add_payment_terms_to_ally_collection_configs_table.php
+  ./landlord-creditapi/database/migrations/2026_01_19_172500_add_wompi_fields_to_ally_payments_table.php
+  ./landlord-creditapi/database/migrations/2026_01_19_172600_update_ally_payments_status_enum.php
+  ./landlord-creditapi/database/migrations/2026_01_19_180000_add_wompi_fields_to_payment_links_table.php
+  ./landlord-creditapi/database/migrations/2026_01_20_000000_create_tenant_company_info_and_documents_tables.php
+  ./landlord-creditapi/database/seeders/DatabaseSeeder.php
+  ./landlord-creditapi/public/index.php
+  ./landlord-creditapi/resources/views/dashboard.blade.php
+  ./landlord-creditapi/resources/views/navigation-menu.blade.php
+  ./landlord-creditapi/resources/views/policy.blade.php
+  ./landlord-creditapi/resources/views/terms.blade.php
+  ./landlord-creditapi/resources/views/welcome.blade.php
+  ./landlord-creditapi/routes/api.php
+  ./landlord-creditapi/routes/console.php
+  ./landlord-creditapi/routes/web.php
+  ./landlord-creditapi/tests/Feature/ApiTokenPermissionsTest.php
+  ./landlord-creditapi/tests/Feature/AuthenticationTest.php
+  ./landlord-creditapi/tests/Feature/BrowserSessionsTest.php
+  ./landlord-creditapi/tests/Feature/CreateApiTokenTest.php
+  ./landlord-creditapi/tests/Feature/DeleteAccountTest.php
+  ./landlord-creditapi/tests/Feature/DeleteApiTokenTest.php
+  ./landlord-creditapi/tests/Feature/EmailVerificationTest.php
+  ./landlord-creditapi/tests/Feature/ExampleTest.php
+  ./landlord-creditapi/tests/Feature/PasswordConfirmationTest.php
+  ./landlord-creditapi/tests/Feature/PasswordResetTest.php
+  ./landlord-creditapi/tests/Feature/ProfileInformationTest.php
+  ./landlord-creditapi/tests/Feature/RegistrationTest.php
+  ./landlord-creditapi/tests/Feature/TwoFactorAuthenticationSettingsTest.php
+  ./landlord-creditapi/tests/Feature/UpdatePasswordTest.php
+  ./landlord-creditapi/tests/TestCase.php
+  ./landlord-creditapi/tests/Unit/ExampleTest.php
+  ./tenant-api/app/Events/InstallmentPaid.php
+  ./tenant-api/app/Events/TransactionApproved.php
+  ./tenant-api/app/Listeners/NotifyLandlordOfPayment.php
+  ./tenant-api/app/Models/CreditInstallment.php
+  ./tenant-api/app/Models/Tenant.php
+  ./tenant-api/app/Models/User.php
+  ./tenant-api/app/Providers/AppServiceProvider.php
+  ./tenant-api/app/Providers/TenancyServiceProvider.php
+  ./tenant-api/app/Services/CreditService.php
+  ./tenant-api/app/Services/PaymentService.php
+  ./tenant-api/bootstrap/app.php
+  ./tenant-api/bootstrap/cache/packages.php
+  ./tenant-api/bootstrap/cache/services.php
+  ./tenant-api/bootstrap/providers.php
+  ./tenant-api/config/app.php
+  ./tenant-api/config/auth.php
+  ./tenant-api/config/broadcasting.php
+  ./tenant-api/config/cache.php
+  ./tenant-api/config/cors.php
+  ./tenant-api/config/database.php
+  ./tenant-api/config/filesystems.php
+  ./tenant-api/config/logging.php
+  ./tenant-api/config/mail.php
+  ./tenant-api/config/queue.php
+  ./tenant-api/config/reverb.php
+  ./tenant-api/config/sanctum.php
+  ./tenant-api/config/services.php
+  ./tenant-api/config/session.php
+  ./tenant-api/config/tenancy.php
+  ./tenant-api/database/factories/UserFactory.php
+  ./tenant-api/database/migrations/2019_09_15_000010_create_tenants_table.php
+  ./tenant-api/database/migrations/2019_09_15_000020_create_domains_table.php
+  ./tenant-api/database/migrations/2020_05_15_000010_create_tenant_user_impersonation_tokens_table.php
+  ./tenant-api/database/seeders/DatabaseSeeder.php
+  ./tenant-api/public/index.php
+  ./tenant-api/resources/views/welcome.blade.php
+  ./tenant-api/routes/api.php
+  ./tenant-api/routes/channels.php
+  ./tenant-api/routes/console.php
+  ./tenant-api/routes/tenant.php
+  ./tenant-api/routes/web.php
+  ./tenant-api/tests/Feature/ExampleTest.php
+  ./tenant-api/tests/TestCase.php
+  ./tenant-api/tests/Unit/ExampleTest.php
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  7. .ENV (claves ocultas)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  .env no encontrado
+
+============================================================
+  ✅ Inspección completada
+============================================================

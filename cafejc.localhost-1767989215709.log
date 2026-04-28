@@ -1,0 +1,10 @@
+PaymentsPage.jsx:49 === DATOS DEL CRÉDITO ===
+PaymentsPage.jsx:50 Cliente: {name: 'David Alexander Garrido Hernandez', identification: '1022978178'}
+PaymentsPage.jsx:51 Crédito: {id: 2, status: 'active', available_amount: '810000.01', total_limit: '4520000.00'}
+PaymentsPage.jsx:65 === OPCIONES DE PAGO ===
+PaymentsPage.jsx:66 {success: true, data: {…}}
+PaymentsPage.jsx:68 === PERIODOS ===
+PaymentsPage.jsx:69 {success: true, data: {…}}
+PaymentsPage.jsx:98 === PERIODO SELECCIONADO ===
+PaymentsPage.jsx:99 Periodo: {period_number: 2, period_key: '2026-02-02_2026-03-01', period_start: '2026-02-02', period_end: '2026-03-01', installments_count: 2, …}
+PaymentsPage.jsx:100 Tiene saldo pendiente? false

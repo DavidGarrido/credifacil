@@ -1,0 +1,863 @@
+Perfecto, ahora tengo la comprensión completa del sistema de periodos de Libercol. Déjame explicártelo de forma exhaustiva para que puedas implementarlo exactamente igual en
+  CrediFacil.
+
+● 📘 SISTEMA DE PERIODOS DE LIBERCOL - DOCUMENTACIÓN COMPLETA
+
+  🎯 Concepto Fundamental: Periodos vs Cuotas
+
+  En Libercol, NO se pagan "cuotas" individuales. Se pagan "PERIODOS".
+
+  Diferencia Clave:
+
+  - Cuota: Fecha de vencimiento específica (ej: 15 de enero)
+  - Periodo: Rango de fechas definido por el día de corte (ej: 6 de diciembre - 5 de enero)
+
+  ---
+  🗓️ 1. Lógica de Periodos (getPeriodForDate)
+
+  Ubicación: Installments.vue:1216-1260
+
+  Regla Principal:
+
+  Un periodo es un rango de fechas que comienza el día siguiente al día de corte y termina en el día de corte del siguiente mes.
+
+  Ejemplo con día de corte = 5:
+
+  | Fecha de Cuota | Pertenece al Periodo              |
+  |----------------|-----------------------------------|
+  | 3 de enero     | 6 dic - 5 ene (periodo anterior)  |
+  | 5 de enero     | 6 dic - 5 ene (periodo anterior)  |
+  | 6 de enero     | 6 ene - 5 feb (periodo actual)    |
+  | 20 de enero    | 6 ene - 5 feb (periodo actual)    |
+  | 5 de febrero   | 6 ene - 5 feb (periodo actual)    |
+  | 6 de febrero   | 6 feb - 5 mar (periodo siguiente) |
+
+  getPeriodForDate(date, cutoffDay) {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const day = date.getDate();
+
+      let startDate, endDate;
+
+      // Regla 1: Si el día <= día de corte, pertenece al periodo que TERMINA este mes
+      if (day <= cutoffDay) {
+          // Periodo: (corte mes anterior + 1) → (corte mes actual)
+          const prevMonth = month === 0 ? 11 : month - 1;
+          const prevYear = month === 0 ? year - 1 : year;
+
+          // Ajustar si el mes anterior tiene menos días
+          const lastDayPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
+          const actualCutoffDayPrev = Math.min(cutoffDay, lastDayPrevMonth);
+
+          startDate = new Date(prevYear, prevMonth, actualCutoffDayPrev + 1);
+
+          // Ajustar si el mes actual tiene menos días
+          const lastDayCurrentMonth = new Date(year, month + 1, 0).getDate();
+          const actualCutoffDay = Math.min(cutoffDay, lastDayCurrentMonth);
+
+          endDate = new Date(year, month, actualCutoffDay);
+      }
+      // Regla 2: Si el día > día de corte, pertenece al periodo que COMIENZA este mes
+      else {
+          // Periodo: (corte mes actual + 1) → (corte mes siguiente)
+          startDate = new Date(year, month, cutoffDay + 1);
+
+          const nextMonth = month === 11 ? 0 : month + 1;
+          const nextYear = month === 11 ? year + 1 : year;
+
+          const lastDayNextMonth = new Date(nextYear, nextMonth + 1, 0).getDate();
+          const actualCutoffDayNext = Math.min(cutoffDay, lastDayNextMonth);
+
+          endDate = new Date(nextYear, nextMonth, actualCutoffDayNext);
+      }
+
+      return {
+          period_key: `${startDate.getFullYear()}-${startDate.getMonth()}-${startDate.getDate()}_${endDate.getFullYear()}-${endDate.getMonth()}-${endDate.getDate()}`,
+          start_date: startDate,
+          end_date: endDate
+      };
+  }
+
+  ---
+  📊 2. Agrupación de Cuotas en Periodos (generatePeriodPayments)
+
+  Ubicación: Installments.vue:1014-1113
+
+  Proceso:
+
+  1. Agrupa cuotas por el periodo al que pertenecen (según getPeriodForDate)
+  2. Suma capital, intereses, seguro y pagos realizados
+  3. Calcula estado del periodo (pendiente/parcial/pagado/vencido)
+
+  generatePeriodPayments() {
+      const periodGroups = {};
+      const cutoffDay = parseInt(this.credit.cutoff_day);
+
+      // Paso 1: Agrupar cuotas por periodo
+      this.installments.forEach(installment => {
+          if (!installment.due_date) return;
+
+          const dueDate = new Date(installment.due_date);
+          const periodInfo = this.getPeriodForDate(dueDate, cutoffDay);
+          const key = periodInfo.period_key;
+
+          if (!periodGroups[key]) {
+              periodGroups[key] = {
+                  period_key: key,
+                  start_date: periodInfo.start_date,
+                  end_date: periodInfo.end_date,
+                  installments: [],
+                  total_amount: 0,
+                  principal_amount: 0,
+                  interest_amount: 0,
+                  insurance_amount: 0,
+                  paid_amount: 0,
+                  status: 'pendiente'
+              };
+          }
+
+          periodGroups[key].installments.push(installment);
+
+          // Paso 2: Sumar montos
+          periodGroups[key].total_amount += parseFloat(installment.total_amount || 0);
+          periodGroups[key].principal_amount += parseFloat(installment.principal_amount || 0);
+          periodGroups[key].interest_amount += parseFloat(installment.interest_amount || 0);
+          periodGroups[key].insurance_amount += parseFloat(installment.insurance_amount || 0);
+          periodGroups[key].paid_amount += parseFloat(installment.paid_amount || 0);
+      });
+
+      // Paso 3: Calcular estado de cada periodo
+      Object.keys(periodGroups).forEach(key => {
+          const period = periodGroups[key];
+
+          // Verificar pago anticipado
+          if (this.isPaidBeforePeriodStart(period) &&
+              !period.installments.some(i => i.status === 'parcial')) {
+              const allPaid = period.installments.every(i =>
+                  i.status === 'pagado' || i.status === 'pagada'
+              );
+              if (allPaid) {
+                  period.status = 'pagado';
+                  return;
+              }
+          }
+
+          // Verificar pago completo
+          const isPaidExactly = Math.abs(period.paid_amount - period.total_amount) < 0.01;
+          const isPartiallyPaid = period.paid_amount > 0 && period.paid_amount < period.total_amount;
+
+          if (isPaidExactly) {
+              period.status = 'pagado';
+          } else if (isPartiallyPaid) {
+              period.status = 'parcial';
+          }
+      });
+
+      // Convertir a array y ordenar
+      this.periodPayments = Object.values(periodGroups).sort((a, b) => {
+          return new Date(a.start_date) - new Date(b.start_date);
+      });
+  }
+
+  ---
+  💰 3. Pagos Anticipados (isPaidBeforePeriodStart)
+
+  Ubicación: Installments.vue:1429-1450
+
+  Concepto:
+
+  Un pago anticipado ocurre cuando pagas un periodo ANTES de que comience su fecha de inicio.
+
+  Consecuencia:
+
+  - NO se cobran intereses (solo capital + seguro)
+  - Se marca como "Pagado (anticipado)" en la UI
+
+  isPaidBeforePeriodStart(periodSummary) {
+      if (!periodSummary || !periodSummary.installments ||
+          periodSummary.installments.length === 0 || periodSummary.paid_amount <= 0) {
+          return false;
+      }
+
+      const startDate = new Date(periodSummary.start_date);
+
+      // Verificar si alguna cuota tiene payment_date anterior al inicio del periodo
+      return periodSummary.installments.some(installment => {
+          if (!installment.payment_date || installment.status === 'pendiente') {
+              return false;
+          }
+
+          const paymentDate = new Date(installment.payment_date);
+          return paymentDate < startDate;
+      });
+  }
+
+  Ejemplo:
+
+  - Periodo: 6 enero - 5 febrero
+  - Pago realizado: 20 de diciembre
+  - Resultado: Pago anticipado → NO cobra intereses del periodo
+
+  ---
+  💳 4. Tipos de Pago
+
+  Ubicación: Installments.vue:752-811, PaymentController.php:158-370
+
+  | Tipo        | Código      | Descripción                          | Se paga                    |
+  |-------------|-------------|--------------------------------------|----------------------------|
+  | Pendientes  | pending     | Cuotas vencidas hasta fecha de corte | Todo lo vencido            |
+  | Liquidación | liquidation | Pagar todo el crédito                | Cuotas futuras SIN interés |
+  | Periodo     | multiple    | Todas las cuotas de un periodo       | Todas del mismo periodo    |
+  | Individual  | single      | Una cuota específica                 | Una sola cuota             |
+
+  Lógica en Frontend (openPaymentModal):
+
+  openPaymentModal(type) {
+      if (type === 'pending') {
+          this.paymentType = 'pending';
+          this.paymentAmount = Math.round(this.paymentOptions.pending_option.total);
+      }
+      else if (type === 'liquidation') {
+          this.paymentType = 'liquidation';
+          this.paymentAmount = Math.round(this.paymentOptions.liquidation_option.total);
+      }
+      else if (type.installments) {
+          // Pago de PERIODO (pasaron un periodSummary)
+          this.paymentType = 'multiple';
+
+          const pendingInstallments = type.installments.filter(i =>
+              i.status === 'pendiente' || i.status === 'vencido'
+          );
+
+          this.selectedInstallment = pendingInstallments[0]; // Primera cuota del periodo
+          this.paymentAmount = pendingInstallments.reduce((sum, i) =>
+              sum + parseFloat(i.remaining_amount || 0), 0
+          );
+      }
+      else {
+          // Pago INDIVIDUAL (pasaron un installment)
+          this.paymentType = 'single';
+          this.selectedInstallment = type;
+          this.paymentAmount = Math.round(parseFloat(type.remaining_amount || 0));
+      }
+
+      this.paymentForm.amount = this.paymentAmount;
+      this.showPaymentModal = true;
+  }
+
+  Lógica en Backend (PaymentController.php:172-198):
+
+  case 'multiple':
+      if ($validated['period_payment'] === 'true') {
+          $selectedDate = Carbon::parse($installment->due_date);
+
+          // Encontrar todas las cuotas del mismo periodo (mes/año)
+          $periodInstallments = $credit->installments
+              ->filter(function($item) use ($selectedDate) {
+                  if (!$item->due_date) return false;
+                  $itemDate = Carbon::parse($item->due_date);
+                  return $itemDate->month === $selectedDate->month &&
+                         $itemDate->year === $selectedDate->year;
+              })
+              ->sortBy('due_date');
+
+          // Distribuir el pago entre todas las cuotas del periodo
+          foreach ($periodInstallments as $periodInstallment) {
+              if ($remainingAmount <= 0) break;
+              $installmentPayment = min($remainingAmount, $periodInstallment->remaining_amount);
+              $payment = $periodInstallment->registerPayment($installmentPayment, $paymentData);
+              if ($payment) {
+                  $payments[] = $payment;
+                  $remainingAmount -= $installmentPayment;
+              }
+          }
+      }
+      break;
+
+  ---
+  📈 5. Visualización en UI (Tabla de Periodos)
+
+  Ubicación: Installments.vue:244-366
+
+  Columnas de la tabla:
+
+  1. Periodo: Start date - End date (con día de corte)
+  2. Valor Total: Total + Pagado + Pendiente
+  3. Capital: Con lógica de pago anticipado
+  4. Interés: "No aplica" si es pago anticipado
+  5. Seguro: Se aplica siempre
+  6. Estado: pendiente/parcial/pagado/vencido/pagado (anticipado)
+  7. Acciones: Ver / Pagar / Comprobante
+
+  Lógica de columna "Capital" (líneas 280-293):
+
+  <!-- Si es pago anticipado -->
+  <div v-if="isPaidBeforePeriodStart(periodSummary)" class="text-xs text-green-600">
+      ${{ formatNumber(Math.min(periodSummary.paid_amount - periodSummary.insurance_amount, periodSummary.principal_amount)) }}
+  </div>
+
+  <!-- Si NO es anticipado y pagó más que interés+seguro -->
+  <div v-else-if="periodSummary.paid_amount >= (periodSummary.interest_amount + periodSummary.insurance_amount)" class="text-xs text-green-600">
+      ${{ formatNumber(Math.min(periodSummary.paid_amount - periodSummary.interest_amount - periodSummary.insurance_amount, periodSummary.principal_amount)) }}
+  </div>
+
+  <!-- Si no ha pagado suficiente -->
+  <div v-else class="text-xs text-red-600">$0.00</div>
+
+  <!-- Etiqueta -->
+  <div class="text-xs text-gray-500">
+      {{ isPaidBeforePeriodStart(periodSummary) ? 'Aplicado a capital (pago anticipado)' :
+         periodSummary.paid_amount >= (periodSummary.interest_amount + periodSummary.insurance_amount) ? 'Aplicado a capital' : 'Pendiente de pago' }}
+  </div>
+
+  Lógica de columna "Interés" (líneas 295-309):
+
+  <!-- Si es pago anticipado, NO cobra interés -->
+  <div v-if="isPaidBeforePeriodStart(periodSummary)" class="text-xs text-blue-600">
+      No aplica
+  </div>
+
+  <!-- Si no es anticipado, aplica interés normalmente -->
+  <div v-else-if="periodSummary.paid_amount > 0" class="text-xs">
+      ${{ formatNumber(Math.min(periodSummary.paid_amount, periodSummary.interest_amount)) }}
+  </div>
+
+  ---
+  🔄 6. Orden de Aplicación de Pagos
+
+  Pago Normal (dentro del periodo o después):
+
+  1. Interés
+  2. Seguro
+  3. Capital
+
+  Pago Anticipado (antes del periodo):
+
+  1. Seguro
+  2. Capital
+  3. ❌ NO interés
+
+  Código en la UI (líneas 282-291):
+
+  // PAGO ANTICIPADO:
+  capitalPagado = paid_amount - insurance_amount
+
+  // PAGO NORMAL:
+  if (paid_amount >= (interest + insurance)) {
+      capitalPagado = paid_amount - interest - insurance
+  } else {
+      capitalPagado = 0 // Todavía no llegó al capital
+  }
+
+  ---
+  📋 7. Flujo Completo de Ejemplo
+
+  Configuración:
+  - Día de corte: 5
+  - Tasa: 10% mensual
+  - Seguro: 5%
+  - 3 cuotas creadas: 15 ene, 20 ene, 5 feb
+
+  Periodos generados:
+  | Periodo       | Cuotas incluidas      | Total |
+  |---------------|-----------------------|-------|
+  | 6 dic - 5 ene | Ninguna               | $0    |
+  | 6 ene - 5 feb | 15 ene, 20 ene, 5 feb | $XXX  |
+  | 6 feb - 5 mar | Ninguna               | $0    |
+
+  Escenario 1: Pago dentro del periodo (25 de enero)
+  - Fecha de pago: 25 de enero
+  - Periodo: 6 ene - 5 feb
+  - Cobra: Capital + Interés + Seguro
+  - Estado: "Pagado"
+
+  Escenario 2: Pago anticipado (30 de diciembre)
+  - Fecha de pago: 30 de diciembre
+  - Periodo: 6 ene - 5 feb (aún no ha comenzado)
+  - Cobra: Capital + Seguro (❌ NO interés)
+  - Estado: "Pagado (anticipado)"
+
+  ---
+  ✅ Checklist de Implementación para CrediFacil
+
+  Necesitas implementar:
+
+● ✅ Checklist para Implementar en CrediFacil
+
+  Backend (Tenant API):
+
+  1. ✅ Base de Datos
+    - Agregar campo cutoff_day a tabla credits (default: 1)
+    - Agregar campo payment_date a tabla credit_installments (fecha real de pago)
+  2. ✅ CreditService.php
+    - Método getPeriodForDate($dueDate, $cutoffDay) - calcula periodo
+    - Método generatePeriodSummary($creditId) - agrupa cuotas por periodo
+    - Método isPaidBeforePeriodStart($installment, $periodStartDate) - detecta anticipos
+  3. ✅ PaymentController o nuevo PaymentService
+    - Tipo de pago multiple (pagar periodo completo)
+    - Guardar payment_date en cada installment al registrar pago
+    - Lógica de aplicación:
+        - Si payment_date < period_start: aplicar solo seguro + capital
+      - Si payment_date >= period_start: aplicar interés + seguro + capital
+  4. ✅ Endpoint nuevo
+    - GET /api/credits/{id}/periods - devuelve resumen de periodos agrupados
+
+  Frontend (React):
+
+  1. ✅ Nueva vista o sección
+    - Tabla de "Resumen por Periodo" (similar a líneas 244-366 de Libercol)
+    - Columnas: Periodo | Total | Capital | Interés | Seguro | Estado | Acciones
+  2. ✅ Botón "Pagar Periodo"
+    - Modal que suma todas las cuotas pendientes del periodo seleccionado
+    - Envía payment_type: 'multiple' y period_payment: true
+  3. ✅ Indicador visual de pagos anticipados
+    - Badge "Pagado (anticipado)" en verde
+    - Mostrar "No aplica" en columna de interés
+
+  ---
+  🎯 Resumen Ejecutivo
+
+  El sistema de periodos de Libercol funciona así:
+
+  1. Periodos se definen por día de corte, NO por mes calendario
+  2. Una compra puede generar múltiples cuotas en el MISMO periodo
+  3. Los pagos se agrupan por periodo, no por cuota individual
+  4. Pagos anticipados NO cobran interés, solo capital + seguro
+  5. El orden de aplicación cambia según si el pago es anticipado o no
+
+  Diferencia clave vs sistema tradicional:
+  - ❌ Sistema tradicional: Pagar cuota 1 → cuota 2 → cuota 3
+  - ✅ Sistema Libercol: Pagar periodo 1 (con 3 cuotas adentro) → periodo 2 → etc
+
+  ¿Quieres que empiece a implementar esto en tu tenant-api de CrediFacil?
+
+> una compra no genera diferentes pagos en el mismo periodo puede haber dos compras diferentes con el mismo credito 
+
+● ¡Tienes razón! Déjame corregir eso. Entiendo ahora:
+
+  Una COMPRA genera sus propias cuotas, pero puede haber MÚLTIPLES COMPRAS usando el mismo crédito (como una línea de crédito rotativa), y esas diferentes compras pueden tener
+  cuotas que caigan en el MISMO PERIODO.
+
+  Déjame corregir y aclarar el concepto:
+
+  ---
+  🔄 Concepto Correcto: Crédito Rotativo con Múltiples Compras
+
+  Flujo Real:
+
+  1. Landlord aprueba crédito
+    - Cliente: Juan Pérez
+    - Cupo total: $1,000,000
+    - Disponible: $1,000,000
+    - Plazo máximo: 12 cuotas
+    - Día de corte: 5
+  2. Compra #1 (10 de enero)
+    - Monto: $300,000
+    - Cuotas: 3 (a 3 meses)
+    - Genera cuotas: 10 feb, 10 mar, 10 abr
+    - Disponible restante: $700,000
+  3. Compra #2 (20 de enero)
+    - Monto: $200,000
+    - Cuotas: 2 (a 2 meses)
+    - Genera cuotas: 20 feb, 20 mar
+    - Disponible restante: $500,000
+
+  Resultado: Periodos Agrupados
+
+  Periodo: 6 febrero - 5 marzo (día de corte = 5)
+  - Cuota de Compra #1: vence 10 febrero ($100,000)
+  - Cuota de Compra #2: vence 20 febrero ($100,000)
+  - Total del periodo: $200,000
+
+  Periodo: 6 marzo - 5 abril
+  - Cuota de Compra #1: vence 10 marzo ($100,000)
+  - Cuota de Compra #2: vence 20 marzo ($100,000)
+  - Total del periodo: $200,000
+
+  Periodo: 6 abril - 5 mayo
+  - Cuota de Compra #1: vence 10 abril ($100,000)
+  - Total del periodo: $100,000
+
+  ---
+  📊 Estructura de Datos Actualizada
+
+  En Tenant Database:
+
+  -- Tabla: credit_installments
+  -- Un crédito puede tener MÚLTIPLES grupos de cuotas de diferentes compras
+
+  | id | landlord_credit_id | installment_number | purchase_amount | due_date   | metadata                    |
+  |----|--------------------|--------------------|-----------------|------------|-----------------------------|
+  | 1  | 5                  | 0                  | NULL            | NULL       | {config del crédito}        |
+  | 2  | 5                  | 1                  | 300000          | 2025-02-10 | {landlord_transaction_id:1} |
+  | 3  | 5                  | 2                  | 300000          | 2025-03-10 | {landlord_transaction_id:1} |
+  | 4  | 5                  | 3                  | 300000          | 2025-04-10 | {landlord_transaction_id:1} |
+  | 5  | 5                  | 1                  | 200000          | 2025-02-20 | {landlord_transaction_id:2} |
+  | 6  | 5                  | 2                  | 200000          | 2025-03-20 | {landlord_transaction_id:2} |
+
+  Nota: El installment_number es por COMPRA (transaction), NO global del crédito.
+
+  ---
+  🔑 Modificación del Modelo
+
+  Necesitas agregar un campo para identificar a qué compra/transacción pertenece cada cuota:
+
+  Opción 1: Usar metadata['landlord_transaction_id'] (ya existe)
+
+  {
+    "landlord_transaction_id": 123,
+    "purchase_amount": 300000,
+    "installment_config": {...}
+  }
+
+  Opción 2: Agregar campo transaction_group_id (más claro)
+
+  ALTER TABLE credit_installments ADD COLUMN transaction_group_id VARCHAR(50) AFTER landlord_credit_id;
+
+  Entonces cada compra tendría un identificador único:
+  - Compra 1: transaction_group_id = "TX-20250110-001"
+  - Compra 2: transaction_group_id = "TX-20250120-002"
+
+  ---
+  🎯 Flujo Actualizado en CreditService
+
+  Método: generateInstallmentsForPurchase()
+
+  Actualmente (líneas 21-194 de CreditService.php):
+  public function generateInstallmentsForPurchase(
+      int $landlordCreditId,
+      float $purchaseAmount,
+      int $numberOfInstallments,
+      int $clientId,
+      int $userId
+  ): array
+
+  Está bien, porque:
+  - ✅ Ya recibe $landlordCreditId (el crédito base)
+  - ✅ Ya recibe $purchaseAmount (monto de ESTA compra específica)
+  - ✅ Ya recibe $numberOfInstallments (cuotas de ESTA compra)
+  - ✅ Ya guarda en metadata landlord_transaction_id para identificar la compra
+
+  Lo que SÍ necesitas agregar:
+
+  1. Identificador único de grupo de compra
+  // En generateInstallmentsForPurchase, línea 155-182
+  $transactionGroupId = 'TX-' . now()->format('YmdHis') . '-' . uniqid();
+
+  $installment = CreditInstallment::create([
+      'landlord_credit_id' => $landlordCreditId,
+      'transaction_group_id' => $transactionGroupId, // NUEVO
+      'installment_number' => $i,
+      'due_date' => $dueDate,
+      // ... resto de campos
+  ]);
+
+  2. Método para agrupar por periodo (NUEVO)
+  /**
+   * Obtiene resumen de cuotas agrupadas por periodo de pago
+   * 
+   * @param int $landlordCreditId
+   * @return array
+   */
+  public function getPeriodSummary(int $landlordCreditId): array
+  {
+      // Obtener configuración del crédito
+      $installmentParent = CreditInstallment::where('landlord_credit_id', $landlordCreditId)
+          ->where('installment_number', 0)
+          ->first();
+
+      if (!$installmentParent) {
+          throw new \Exception("No se encontró el crédito para landlord_credit_id: $landlordCreditId");
+      }
+
+      $creditConfig = $installmentParent->metadata['credit_config'] ?? [];
+      $cutoffDay = $creditConfig['cutoff_day'] ?? 1;
+
+      // Obtener TODAS las cuotas de TODAS las compras de este crédito
+      $allInstallments = CreditInstallment::where('landlord_credit_id', $landlordCreditId)
+          ->where('installment_number', '>', 0) // Excluir el parent (número 0)
+          ->orderBy('due_date')
+          ->get();
+
+      // Agrupar por periodo
+      $periodGroups = [];
+
+      foreach ($allInstallments as $installment) {
+          $periodInfo = $this->getPeriodForDate($installment->due_date, $cutoffDay);
+          $periodKey = $periodInfo['period_key'];
+
+          if (!isset($periodGroups[$periodKey])) {
+              $periodGroups[$periodKey] = [
+                  'period_key' => $periodKey,
+                  'start_date' => $periodInfo['start_date'],
+                  'end_date' => $periodInfo['end_date'],
+                  'installments' => [],
+                  'total_amount' => 0,
+                  'principal_amount' => 0,
+                  'interest_amount' => 0,
+                  'insurance_amount' => 0,
+                  'paid_amount' => 0,
+              ];
+          }
+
+          $periodGroups[$periodKey]['installments'][] = $installment;
+          $periodGroups[$periodKey]['total_amount'] += $installment->total_amount;
+          $periodGroups[$periodKey]['principal_amount'] += $installment->principal_amount;
+          $periodGroups[$periodKey]['interest_amount'] += $installment->interest_amount;
+          $periodGroups[$periodKey]['insurance_amount'] += $installment->insurance_amount;
+          $periodGroups[$periodKey]['paid_amount'] += $installment->paid_amount;
+      }
+
+      // Calcular estado de cada periodo
+      foreach ($periodGroups as $key => $period) {
+          $allPaid = collect($period['installments'])->every(fn($i) => $i->status === 'pagada');
+          $somePaid = collect($period['installments'])->some(fn($i) => $i->paid_amount > 0);
+
+          if ($allPaid) {
+              $periodGroups[$key]['status'] = 'pagado';
+          } elseif ($somePaid) {
+              $periodGroups[$key]['status'] = 'parcial';
+          } else {
+              $periodGroups[$key]['status'] = 'pendiente';
+          }
+      }
+
+      return array_values($periodGroups);
+  }
+
+  3. Método getPeriodForDate (NUEVO)
+  /**
+   * Determina el periodo al que pertenece una fecha según el día de corte
+   * 
+   * @param string $dueDate
+   * @param int $cutoffDay
+   * @return array
+   */
+  private function getPeriodForDate(string $dueDate, int $cutoffDay): array
+  {
+      $date = Carbon::parse($dueDate);
+      $year = $date->year;
+      $month = $date->month;
+      $day = $date->day;
+
+      // Si el día <= día de corte, pertenece al periodo que TERMINA este mes
+      if ($day <= $cutoffDay) {
+          // Periodo: (corte mes anterior + 1) → (corte mes actual)
+          $startDate = $date->copy()->subMonth()->day(min($cutoffDay, $date->copy()->subMonth()->daysInMonth))->addDay();
+          $endDate = $date->copy()->day(min($cutoffDay, $date->daysInMonth));
+      }
+      // Si el día > día de corte, pertenece al periodo que COMIENZA este mes
+      else {
+          // Periodo: (corte mes actual + 1) → (corte mes siguiente)
+          $startDate = $date->copy()->day($cutoffDay)->addDay();
+          $endDate = $date->copy()->addMonth()->day(min($cutoffDay, $date->copy()->addMonth()->daysInMonth));
+      }
+
+      return [
+          'period_key' => $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d'),
+          'start_date' => $startDate->format('Y-m-d'),
+          'end_date' => $endDate->format('Y-m-d'),
+      ];
+  }
+
+  ---
+  📊 Ejemplo Visual Completo
+
+  Configuración:
+
+  - Crédito ID: 5
+  - Cupo total: $1,000,000
+  - Día de corte: 5
+
+  Timeline:
+
+  10 Ene: Compra #1 ($300k, 3 cuotas)
+    └─> Genera: cuota 10-feb, 10-mar, 10-abr
+
+  20 Ene: Compra #2 ($200k, 2 cuotas)
+    └─> Genera: cuota 20-feb, 20-mar
+
+  Tabla de Periodos en UI:
+
+  | Periodo       | Compras incluidas                      | Total    | Capital  | Interés | Seguro | Estado    | Acciones |
+  |---------------|----------------------------------------|----------|----------|---------|--------|-----------|----------|
+  | 6 feb - 5 mar | Compra #1 (cuota 1)Compra #2 (cuota 1) | $200,000 | $180,000 | $15,000 | $5,000 | Pendiente | Pagar    |
+  | 6 mar - 5 abr | Compra #1 (cuota 2)Compra #2 (cuota 2) | $200,000 | $180,000 | $15,000 | $5,000 | Pendiente | Pagar    |
+  | 6 abr - 5 may | Compra #1 (cuota 3)                    | $100,000 | $90,000  | $7,500  | $2,500 | Pendiente | Pagar    |
+
+  ---
+  ✅ Checklist Corregida
+
+● ¿Ahora está claro el concepto?
+
+  Resumen:
+  - ✅ Un crédito = línea de crédito rotativa
+  - ✅ Múltiples compras pueden usar el mismo crédito
+  - ✅ Cada compra genera su propia tabla de amortización
+  - ✅ Los periodos agrupan cuotas de diferentes compras que vencen en el mismo rango de fechas
+  - ✅ El cliente ve y paga por periodo, no por compra individual
+
+  ¿Quieres que empiece a implementar esto en tu tenant-api? Empezaría por:
+  1. Agregar el campo transaction_group_id a la migración
+  2. Modificar CreditService::generateInstallmentsForPurchase()
+  3. Crear CreditService::getPeriodSummary()
+
+  ¿Vamos?
+
+> mira en installment de libercol si existe un parent en la tabla ese es el encargado de saber que pagos pertenecen a una compra y ten en cuenta que estamos planteando el caso de 
+difertenes compras en el mismo tenan pero si las compras son en diferentes tenan no pasa esto 
+
+● ¡Excelente aclaración! Déjame revisar cómo Libercol maneja el parent/brother para agrupar cuotas de una compra, y entender mejor el caso de múltiples tenants.
+
+● Read(~/Documentos/Libercol/app/Models/Walletmoviment.php)
+  ⎿  Read 54 lines
+
+● Search(pattern: "(brother_id|parent)", path: "~/Documentos/Libercol/app/Models", type: "php", output_mode: "content")
+  ⎿  Found 37 lines (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+> no mires los wallets esos son de un sitema anterior ahora es en installment 
+
+● Tienes razón, déjame ver el modelo CreditInstallment actual:
+
+● Bash(cd /home/garher/Documentos/Libercol && find . -name "CreditInstallment.php" -type f 2>/dev/null | grep -v node_modules | head -5)
+  ⎿  ./app/Models/CreditInstallment.php                       
+  ⎿  Shell cwd was reset to /home/garher/Documentos/credifacil
+
+● Read(~/Documentos/Libercol/app/Models/CreditInstallment.php)
+  ⎿  Read 236 lines
+
+● No veo campos parent_id o brother_id en el modelo CreditInstallment actual. Déjame buscar en las migraciones:
+
+● Bash(cd /home/garher/Documentos/Libercol && find database/migrations -name "*credit_installments*" -type f | sort)
+  ⎿  database/migrations/2025_05_29_110530_create_credit_installments_table.php
+  ⎿  Shell cwd was reset to /home/garher/Documentos/credifacil
+
+● Bash(cd /home/garher/Documentos/Libercol && ls -la database/migrations/ | grep -i credit | head -10)
+  ⎿  -rw-r--r-- 1 garher garher  1756 jun 13 20:57 2025_05_29_105031_create_credit_plans_table.php       
+     -rw-r--r-- 1 garher garher  3282 jun 13 20:57 2025_05_29_110510_create_credits_table.php
+     -rw-r--r-- 1 garher garher  2100 jun 13 20:57 2025_05_29_110530_create_credit_installments_table.php
+     … +4 lines (ctrl+o to expand)
+  ⎿  Shell cwd was reset to /home/garher/Documentos/credifacil
+
+● Read(~/Documentos/Libercol/database/migrations/2025_05_29_110530_create_credit_installments_table.php)
+  ⎿  Read 54 lines
+
+● No veo campos parent_id o brother_id en la tabla credit_installments de Libercol.
+
+  Pero ahora entiendo: en tu sistema CrediFacil (tenant-api), ya tenemos un registro especial con installment_number = 0 que actúa como "parent" y guarda la configuración del
+  crédito:
+
+● Read(tenant-api/app/Models/CreditInstallment.php)
+  ⎿  Read 86 lines
+
+● ¡Perfecto! Ahora entiendo completamente:
+
+  ✅ Sistema Actual en CrediFacil (Tenant-API)
+
+  Estructura Existente:
+
+  -- Tabla: credit_installments (tenant database)
+
+  | id | landlord_credit_id | installment_number | metadata                           |
+  |----|--------------------|--------------------|-------------------------------------|
+  | 1  | 5                  | 0                  | {credit_config, landlord_transaction_id: null} | ← PARENT
+  | 2  | 5                  | 1                  | {landlord_transaction_id: 123, ...} | ← Compra #1, cuota 1
+  | 3  | 5                  | 2                  | {landlord_transaction_id: 123, ...} | ← Compra #1, cuota 2
+  | 4  | 5                  | 3                  | {landlord_transaction_id: 123, ...} | ← Compra #1, cuota 3
+  | 5  | 5                  | 1                  | {landlord_transaction_id: 456, ...} | ← Compra #2, cuota 1
+  | 6  | 5                  | 2                  | {landlord_transaction_id: 456, ...} | ← Compra #2, cuota 2
+
+  El "parent" es el registro con installment_number = 0 que guarda la configuración del crédito.
+
+  ---
+  🔑 Aclaración Importante: Múltiples Tenants
+
+  El usuario aclara:
+  - ✅ Mismo tenant, múltiples compras: Las cuotas SÍ se agrupan en el mismo periodo
+  - ❌ Diferentes tenants: Cada tenant ve SOLO sus propias cuotas (están en bases de datos separadas)
+
+  Ejemplo:
+  Landlord: Crédito #5 aprobado para cliente Juan Pérez
+
+  Tenant "restaurante":
+    - Compra #1: $300k → cuotas en feb, mar, abr
+    - Compra #2: $200k → cuotas en feb, mar
+    - Periodo feb-mar: Agrupa cuotas de ambas compras ✅
+
+  Tenant "farmacia" (DIFERENTE BASE DE DATOS):
+    - Compra #3: $100k → cuotas en feb
+    - Periodo feb-mar: Solo ve sus propias cuotas ✅
+    - NO ve las cuotas del restaurante ✅
+
+  ---
+  🎯 Implementación Correcta
+
+  Ya NO necesitamos agregar transaction_group_id porque ya usamos metadata['landlord_transaction_id'] para identificar cada compra.
+
+● Perfecto, ahora está 100% claro. Entonces el sistema es:
+
+  ✅ Conceptos Clave:
+
+  1. Parent (installment_number = 0): Ya existe, guarda credit_config en metadata
+  2. Identificador de compra: Ya usamos metadata['landlord_transaction_id']
+  3. Agrupación por periodo: Todas las cuotas del mismo landlord_credit_id (sin importar de qué compra) se agrupan por periodo según cutoff_day
+  4. Aislamiento por tenant: Cada tenant solo ve sus propias cuotas (bases de datos separadas)
+
+  📋 Implementación Simplificada:
+
+  Ya NO necesitamos campo transaction_group_id, usaremos lo que ya existe:
+  - landlord_credit_id - identifica el crédito
+  - metadata['landlord_transaction_id'] - identifica la compra específica
+  - installment_number = 0 - es el parent con configuración
+
+  ¿Quieres que empiece a implementar el sistema de periodos? Empezaría por:
+
+  1. ✅ Método getPeriodForDate() en CreditService
+  2. ✅ Método getPeriodSummary() que agrupe cuotas por periodo
+  3. ✅ Endpoint /api/credits/{landlordCreditId}/periods
+  4. ✅ Lógica de pago por periodo
+
+  ¿Vamos?
+
+> perfecto entonces has commit antes de iniciar con la implementacion de pagos 
+
+● Perfecto, voy a hacer commit de los cambios actuales antes de comenzar con la implementación del sistema de pagos por periodos.
+
+● Bash(cd /home/garher/Documentos/credifacil/tenant-api && git status)
+  ⎿  En la rama main                                                      
+     Cambios no rastreados para el commit:
+       (usa "git add <archivo>..." para actualizar lo que será confirmado)
+     … +14 lines (ctrl+o to expand)
+
+● Bash(cd /home/garher/Documentos/credifacil/landlord-creditapi && git status)
+  ⎿  En la rama main                                                      
+     Cambios no rastreados para el commit:
+       (usa "git add <archivo>..." para actualizar lo que será confirmado)
+     … +80 lines (ctrl+o to expand)
+  ⎿  5-hour limit reached · resets 5pm (America/Bogota) · /upgrade to Max or turn on /extra-usage
+     Opening your options…
+
+> Unknown slash command: rate-limit-options 
+
+> continua 
+  ⎿  5-hour limit reached · resets 5pm (America/Bogota) · /upgrade to Max or turn on /extra-usage
+     Opening your options…
+
+> Unknown slash command: rate-limit-options 
+
+> Unknown slash command: rate-limit-options 
+
+> Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user 
+explicitly asks you to.
+Unknown slash command: rate-limit-options
+Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user 
+explicitly asks you to.
+Unknown slash command: rate-limit-options
+Caveat: The messages below were generated by the user while running local commands. DO NOT respond to these messages or otherwise consider them in your response unless the user 
+explicitly asks you to.
+Unknown slash command: rate-limit-options 
+  ⎿  5-hour limit reached · resets 5pm (America/Bogota) · /upgrade to Max or turn on /extra-usage
+     Opening your options…
+
+> Unknown slash command: rate-limit-options 

@@ -1,0 +1,66 @@
+# Reglas de Cline para el proyecto Credifacil
+
+## Contexto del proyecto
+
+Sistema de creditos multi-tenant compuesto por tres partes:
+- `landlord-creditapi/` — API central de creditos (Laravel 11, MySQL)
+- `tenant-api/` — API multi-tenant por comercio (Laravel 11, MySQL)
+- `frontend/` — Cliente web (React + Vite + Tailwind CSS)
+
+Antes de comenzar cualquier tarea, leer `TAREAS.md` en la raiz para conocer las prioridades actuales del proyecto.
+
+Documentacion clave disponible en la raiz:
+- `CREDIT_FLOW.md` — Flujo de creditos
+- `DATABASE_STRUCTURE.md` — Estructura de base de datos
+- `STYLE_GUIDE.md` — Guia de estilos
+- `INDEX.md` — Indice general
+
+## Flujo de trabajo
+
+1. Antes de editar, leer el archivo completo para entender el contexto.
+2. Respetar la arquitectura existente: no mezclar logica entre landlord-api y tenant-api.
+3. Seguir la guia de estilos definida en `STYLE_GUIDE.md`.
+4. No crear archivos innecesarios. Preferir editar sobre crear.
+5. No agregar manejo de errores ni abstracciones para casos que no ocurren aun.
+
+## Stack tecnico
+
+### Backend (Laravel)
+- PHP 8.2+
+- Laravel 11
+- MySQL
+- Autenticacion: Sanctum
+- Arquitectura: Repository + Service pattern
+
+### Frontend (React)
+- React 18 + Vite
+- Tailwind CSS
+- Estado: Context API
+- Peticiones: fetch nativo (sin axios)
+
+## Consultar a Claude
+
+**Solo consulta a Claude cuando genuinamente no puedas resolver algo**, por ejemplo:
+- El problema requiere razonamiento complejo que escapa tu contexto actual
+- Estas atascado en un bug despues de 2+ intentos fallidos
+- Necesitas una decision de arquitectura con multiples implicaciones
+- El error es ambiguo y no encuentras la causa raiz
+
+**No consultes a Claude para:**
+- Tareas rutinarias (CRUD, estilos, rutas simples)
+- Errores con mensaje claro y solucion directa
+- Preguntas que puedes responder leyendo el codigo o documentacion del proyecto
+
+### Como consultar a Claude
+
+Ejecuta directamente en la terminal. **Siempre incluye el contenido del archivo relevante en la pregunta**, porque Claude no tiene acceso al sistema de archivos en este modo:
+
+```bash
+unset CLAUDECODE && claude -p "ARCHIVO: ruta/al/archivo.php
+
+CONTENIDO:
+[pega aqui el contenido completo del archivo o la seccion relevante]
+
+PROBLEMA:
+[describe que intentaste, el error exacto y la linea involucrada]"
+```
