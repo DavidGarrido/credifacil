@@ -29,7 +29,7 @@ Tres proyectos independientes (cada uno su propio git):
 
 ### Detectar dónde estamos
 
-- **PC1** → conectarse a PC2 (LAN `10.0.0.2`, fallback WAN `192.168.195.6`)
+- **PC1** (`garher-pc` / IP `192.168.195.171`) → conectarse a PC2 (LAN `10.0.0.2`, fallback WAN `192.168.195.6`)
 - **PC2** → conectarse a PC1 (LAN `10.0.0.1`, fallback WAN `192.168.195.171`)
 
 ## Flujo de inicio obligatorio
@@ -48,8 +48,8 @@ Detectar si estamos en PC1 o PC2 (por hostname o IP) y verificar el otro.
 
 ```bash
 echo "=== Otro PC ==="
-MI_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
-if echo "$MI_IP" | grep -q "10.0.0.1\|192.168.195.171\|garher"; then
+MI_IP=$(ip addr show | grep -oP 'inet \K[\d.]+' 2>/dev/null | paste -sd ' ')
+if echo "$MI_IP" | grep -q "192.168.195.171\|garher"; then
   # Estamos en PC1 → conectar a PC2
   echo "→ detectado PC1, verificando PC2..."
   if ssh -o ConnectTimeout=3 garher@10.0.0.2 "echo OK" 2>/dev/null; then
