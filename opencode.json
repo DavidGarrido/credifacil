@@ -1,0 +1,14 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "credifacil",
+  "agent": {
+    "credifacil": {
+      "description": "Agente principal para el proyecto Credifacil. Conoce el flujo entre PC local, PC2 y VPS Hostinger.",
+      "mode": "primary",
+      "model": "deepseek/deepseek-v4-flash-free"
+    }
+  },
+  "instructions": [
+    ".opencode/agents/credifacil.md"
+  ]
+}
