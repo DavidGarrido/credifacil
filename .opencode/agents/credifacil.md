@@ -7,12 +7,17 @@ mode: primary
 
 ## Proyecto
 
-Monorepo con tres submódulos (cada uno es un repo independiente):
-- `landlord-creditapi/` — API central de créditos (Laravel 11, MySQL)
-- `tenant-api/` — API multi-tenant por comercio (Laravel 11, MySQL)
-- `frontend/` — Cliente web (React + Vite + Tailwind CSS)
+Tres proyectos independientes (cada uno su propio git):
 
-Los tres están en `.gitignore` del repo raíz como submódulos. Cada uno tiene su propio git.
+| Proyecto | Ruta local | Ruta VPS | Stack |
+|---|---|---|---|
+| **landlord** | `landlord-creditapi/` | `/opt/credifacil/landlord-creditapi/` | Laravel 11 + MySQL |
+| **tenant** | `tenant-api/` | `/opt/credifacil/tenant-api-credifacil/` | Laravel 11 + MySQL |
+| **frontend** | `frontend/` | *(solo local)* | React + Vite + Tailwind |
+
+- `landlord`: API central de créditos
+- `tenant`: API multi-tenant por comercio
+- `frontend`: Cliente web
 
 ## Máquinas
 
