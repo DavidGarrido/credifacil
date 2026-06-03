@@ -16,11 +16,11 @@ Los tres están en `.gitignore` del repo raíz como submódulos. Cada uno tiene 
 
 ## Máquinas
 
-| Máquina        | Acceso                                                                 |
-|----------------|------------------------------------------------------------------------|
-| PC local (este) | Trabajo directo                                                        |
-| PC2            | `ssh garher@192.168.195.6` (alias `pc2-zt`)                           |
-| VPS Hostinger  | `ssh root@187.124.232.145` (producción DigitalOcean)                   |
+| Máquina          | Acceso                                                                    | Rol                          |
+|------------------|---------------------------------------------------------------------------|------------------------------|
+| PC local (este)  | Trabajo directo                                                           | Desarrollo                   |
+| PC2              | `pc2-zt` (alias → `ssh garher@192.168.195.6`)                            | Desarrollo                   |
+| VPS (DigitalOcean) | `ssh -i ~/.ssh/id_rsa root@187.124.232.145`                             | Producción (Docker)          |
 
 ## Flujo de inicio obligatorio
 
@@ -30,7 +30,7 @@ Los tres están en `.gitignore` del repo raíz como submódulos. Cada uno tiene 
 ```bash
 echo "=== PC local ==="
 git status
-git log --oneline -5
+git log --oneline -10
 ```
 
 ### Paso 2: Verificar estado en PC2
@@ -39,20 +39,37 @@ echo "=== PC2 ==="
 ssh garher@192.168.195.6 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list"
 ```
 
-### Paso 3: Verificar si hay commits sin subir
+### Paso 3: Verificar estado en VPS (producción)
+```bash
+echo "=== VPS (DigitalOcean) ==="
+echo "--- última versión desplegada ---"
+ssh -i ~/.ssh/id_rsa root@187.124.232.145 "cd /opt/credifacil && \
+  echo '--- landlord-creditapi ---' && \
+  git -C landlord-creditapi log --oneline -3 2>/dev/null && \
+  echo '--- tenant-api ---' && \
+  git -C tenant-api-credifacil log --oneline -3 2>/dev/null && \
+  echo '--- contenedores activos ---' && \
+  docker ps --format 'table {{.Names}}\t{{.Status}}' 2>/dev/null"
+```
+
+### Paso 4: Verificar si hay commits sin subir
 ```bash
 echo "=== Por enviar a origin ==="
 git log --oneline --branches --not --remotes 2>/dev/null || echo "  (sin remote configurado)"
 ```
 
-### Paso 4: Backup de BD desde VPS (opcional, preguntar)
-Verificar la fecha del último backup local en `/tmp/credifacil_dumps/`. Si es viejo (>1 día), preguntar si quiere ejecutar `./backup_vps_hostinger.sh`.
+### Paso 5: Comparar versiones local vs VPS
+Comparar el log local de `landlord-creditapi` y `tenant-api` con lo que está desplegado en el VPS. Si difieren, mostrar cuántos commits de diferencia hay.
+
+### Paso 6: Backup de BD desde VPS (opcional, preguntar)
+Verificar la fecha del último backup local en `/tmp/credifacil_dumps/`. Si no existe o es viejo (>1 día), preguntar si quiere ejecutar `./backup_vps_hostinger.sh`.
 
 ## Flujo al finalizar sesión
 
 1. Hacer commit y push de los cambios en cada submódulo que haya modificado
 2. Hacer commit y push del repo raíz
 3. Preguntar si quiere sincronizar a PC2 vía `git pull` desde allá
+4. Preguntar si quiere desplegar al VPS (recordar que producción requiere Docker y los pasos de DEPLOYMENT.md)
 
 ## Submódulos
 
