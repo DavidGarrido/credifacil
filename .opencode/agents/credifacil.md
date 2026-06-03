@@ -21,12 +21,16 @@ Tres proyectos independientes (cada uno su propio git):
 
 ## Máquinas
 
-| Máquina          | Acceso                                                                    | Rol                          |
-|------------------|---------------------------------------------------------------------------|------------------------------|
-| PC local (este)  | Trabajo directo                                                           | Desarrollo                   |
-| PC2 (LAN)        | `pc2` (alias → `ssh garher@10.0.0.2`)                                   | Desarrollo                   |
-| PC2 (WAN)        | `pc2-zt` (alias → `ssh garher@192.168.195.6`)                           | Desarrollo (fallback)        |
-| VPS (DigitalOcean) | `ssh -i ~/.ssh/id_rsa root@187.124.232.145`                             | Producción (Docker)          |
+| Máquina            | Acceso LAN                    | Acceso WAN                    | Rol                          |
+|--------------------|-------------------------------|-------------------------------|------------------------------|
+| **PC1** (este)     | Trabajo directo               | `192.168.195.171` (wan)       | Desarrollo                   |
+| **PC2**            | `garher@10.0.0.2` (lan)       | `garher@192.168.195.6` (wan)  | Desarrollo                   |
+| VPS (DigitalOcean) | `root@187.124.232.145` (vía id_rsa) | —                     | Producción (Docker)          |
+
+### Detectar dónde estamos
+
+- **PC1** → conectarse a PC2 (LAN `10.0.0.2`, fallback WAN `192.168.195.6`)
+- **PC2** → conectarse a PC1 (LAN `10.0.0.1`, fallback WAN `192.168.195.171`)
 
 ## Flujo de inicio obligatorio
 
@@ -39,15 +43,32 @@ git status
 git log --oneline -10
 ```
 
-### Paso 2: Verificar estado en PC2 (intentar LAN, fallback WAN)
+### Paso 2: Verificar estado en el otro PC
+Detectar si estamos en PC1 o PC2 (por hostname o IP) y verificar el otro.
+
 ```bash
-echo "=== PC2 ==="
-if ssh -o ConnectTimeout=3 garher@10.0.0.2 "echo OK" 2>/dev/null; then
-  echo "→ conectado via LAN (10.0.0.2)"
-  ssh garher@10.0.0.2 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list"
+echo "=== Otro PC ==="
+MI_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+if echo "$MI_IP" | grep -q "10.0.0.1\|192.168.195.171\|garher"; then
+  # Estamos en PC1 → conectar a PC2
+  echo "→ detectado PC1, verificando PC2..."
+  if ssh -o ConnectTimeout=3 garher@10.0.0.2 "echo OK" 2>/dev/null; then
+    echo "→ PC2 via LAN (10.0.0.2)"
+    ssh garher@10.0.0.2 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list"
+  else
+    echo "→ LAN no responde, intentando WAN (192.168.195.6)..."
+    ssh -o ConnectTimeout=5 garher@192.168.195.6 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list" 2>/dev/null || echo "  ✗ PC2 no disponible"
+  fi
 else
-  echo "→ LAN no responde, intentando WAN (192.168.195.6)..."
-  ssh -o ConnectTimeout=5 garher@192.168.195.6 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list" 2>/dev/null || echo "  ✗ PC2 no disponible (sin conexión)"
+  # Estamos en PC2 → conectar a PC1
+  echo "→ detectado PC2, verificando PC1..."
+  if ssh -o ConnectTimeout=3 garher@10.0.0.1 "echo OK" 2>/dev/null; then
+    echo "→ PC1 via LAN (10.0.0.1)"
+    ssh garher@10.0.0.1 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list"
+  else
+    echo "→ LAN no responde, intentando WAN (192.168.195.171)..."
+    ssh -o ConnectTimeout=5 garher@192.168.195.171 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list" 2>/dev/null || echo "  ✗ PC1 no disponible"
+  fi
 fi
 ```
 
