@@ -24,7 +24,8 @@ Tres proyectos independientes (cada uno su propio git):
 | Máquina          | Acceso                                                                    | Rol                          |
 |------------------|---------------------------------------------------------------------------|------------------------------|
 | PC local (este)  | Trabajo directo                                                           | Desarrollo                   |
-| PC2              | `pc2-zt` (alias → `ssh garher@192.168.195.6`)                            | Desarrollo                   |
+| PC2 (LAN)        | `pc2` (alias → `ssh garher@10.0.0.2`)                                   | Desarrollo                   |
+| PC2 (WAN)        | `pc2-zt` (alias → `ssh garher@192.168.195.6`)                           | Desarrollo (fallback)        |
 | VPS (DigitalOcean) | `ssh -i ~/.ssh/id_rsa root@187.124.232.145`                             | Producción (Docker)          |
 
 ## Flujo de inicio obligatorio
@@ -38,10 +39,16 @@ git status
 git log --oneline -10
 ```
 
-### Paso 2: Verificar estado en PC2
+### Paso 2: Verificar estado en PC2 (intentar LAN, fallback WAN)
 ```bash
 echo "=== PC2 ==="
-ssh garher@192.168.195.6 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list"
+if ssh -o ConnectTimeout=3 garher@10.0.0.2 "echo OK" 2>/dev/null; then
+  echo "→ conectado via LAN (10.0.0.2)"
+  ssh garher@10.0.0.2 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list"
+else
+  echo "→ LAN no responde, intentando WAN (192.168.195.6)..."
+  ssh -o ConnectTimeout=5 garher@192.168.195.6 "cd ~/Documentos/credifacil && echo '--- status ---' && git status && echo '--- log ---' && git log --oneline -5 && echo '--- stashes ---' && git stash list" 2>/dev/null || echo "  ✗ PC2 no disponible (sin conexión)"
+fi
 ```
 
 ### Paso 3: Verificar estado en VPS (producción)
