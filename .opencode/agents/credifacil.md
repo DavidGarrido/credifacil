@@ -7,12 +7,13 @@ mode: primary
 
 ## Proyecto — 4 repos independientes (cada uno su propio git)
 
-| # | Proyecto | Ruta local | Ruta VPS | Stack | Quién lo usa |
-|---|---|---|---|---|---|
-| 1 | **landlord** | `landlord-creditapi/` | `/opt/credifacil/landlord-creditapi/` | Laravel 11 + MySQL | Admin CrediFácil |
-| 2 | **tenant** | `tenant-api/` | `/opt/credifacil/tenant-api-credifacil/` | Laravel 11 + MySQL | Comercios (multi-tenant) |
-| 3 | **frontend** | `frontend/` | *(solo local)* | React + Vite + Tailwind | **Admin comercios** (empleados con roles) |
-| 4 | **client-portal-ionic** 🆕 | `client-portal-ionic/` | *(solo local)* | Ionic/Angular + Capacitor | **Clientes/deudores** (personas que piden crédito) |
+| # | Proyecto | Ruta local | Ruta VPS | GitHub | Stack | Quién lo usa |
+|---|---|---|---|---|---|---|---|
+| 1 | **landlord** | `landlord-creditapi/` | `/opt/credifacil/landlord-creditapi/` | `DavidGarrido/landlord-creditapi.git` | Laravel 11 + MySQL | Admin CrediFácil |
+| 2 | **tenant** | `tenant-api/` | `/opt/credifacil/tenant-api-credifacil/` | `DavidGarrido/tenant-api-credifacil.git` | Laravel 11 + MySQL | Comercios (multi-tenant) |
+| 3 | **frontend** | `frontend/` | *(solo local)* | `DavidGarrido/frontend-tenant-credifacil.git` | React + Vite + Tailwind | **Admin comercios** (empleados con roles) |
+| 4 | **client-portal-ionic** 🆕 | `client-portal-ionic/` | `/opt/credifacil/client-portal-ionic/` | `DavidGarrido/client-portal-ionic.git` | Ionic/Angular + Capacitor | **Clientes/deudores** (personas que piden crédito) |
+| — | **raíz** | `./` (este repo) | — | `DavidGarrido/credifacil.git` | — | Meta-repo con submodulos |
 
 ### Descripción de cada proyecto
 
@@ -48,6 +49,8 @@ Tenant DB local: credit_installments, pagos, usuarios
 
 - **PC1** (`garher-pc` / IP `192.168.195.171`) → conectarse a PC2 (LAN `10.0.0.2`, fallback WAN `192.168.195.6`)
 - **PC2** → conectarse a PC1 (LAN `10.0.0.1`, fallback WAN `192.168.195.171`)
+
+> ⚠️ **PC2** no tiene el repo raíz (`credifacil/`) con submodulos. Solo los proyectos individuales (`landlord-creditapi/`, `tenant-api-credifacil/`, `frontend-tenant-credifacil/`). Para tener este agente en PC2 hay que clonar también `DavidGarrido/credifacil.git` o copiar este archivo a la ruta equivalente.
 
 ## Flujo de inicio obligatorio
 
@@ -132,11 +135,77 @@ cd ../client-portal-ionic && git add -A && git commit -m "..." && git push
 cd .. && git add landlord-creditapi tenant-api frontend client-portal-ionic && git commit -m "chore: update submodules" && git push
 ```
 
+## 🚨 Conocimiento crítico de producción
+
+### Usuarios en contenedores
+- **PHP-FPM** corre como usuario **`sail`** (uid 1337), NO como `www-data`
+- `docker exec ... php artisan ...` se ejecuta como **root** → los archivos creados quedan propiedad de root
+- **El PHP-FPM no puede escribir logs ni archivos creados por root**
+
+### Solución permanente de permisos (setgid)
+```bash
+# Ya está aplicado en tenant y landlord — mantener:
+chown -R sail:sail /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+chmod g+s /var/www/html/storage /var/www/html/bootstrap/cache
+# El setgid hace que archivos nuevos hereden el grupo sail
+```
+
+### Helper `artisan-sail` (en el VPS)
+```bash
+# Usar SIEMPRE en vez de docker exec ... php artisan ...
+artisan-sail tenant optimize       # → docker exec -u sail ... php artisan optimize
+artisan-sail landlord migrate       # → docker exec -u sail ... php artisan migrate
+artisan-sail tenant config:clear
+```
+Está en `/usr/local/bin/artisan-sail` del VPS. Ejecuta artisan como `sail` (no root).
+
+### 🐞 Opcache: validate_timestamps = 0
+Los Dockerfiles tienen `opcache.validate_timestamps=0` en CLI + FPM.  
+**Esto significa que PHP-FPM NUNCA detecta cambios en archivos PHP.**
+
+👉 Después de hacer `git pull` de nuevo código, hay que **reiniciar PHP-FPM**:
+```bash
+# Encontrar el PID del master de PHP-FPM y enviarle SIGUSR2 (graceful restart)
+PHP_PID=$(docker exec tenant-api-credifacil-laravel.test-1 pgrep -f "php-fpm: master")
+docker exec tenant-api-credifacil-laravel.test-1 kill -USR2 $PHP_PID
+
+# Alternativa: reiniciar el contenedor completo
+docker compose -f /opt/credifacil/tenant-api-credifacil/compose.yaml restart laravel.test
+```
+
+### Flujo de deploy correcto
+```bash
+# 1. Pull código
+git -C /opt/credifacil/tenant-api-credifacil pull origin main
+
+# 2. Recachear config/rutas (como sail)
+artisan-sail tenant optimize
+
+# 3. 👉 Reiniciar PHP-FPM (para que opcache cargue los nuevos archivos)
+PHP_PID=$(docker exec tenant-api-credifacil-laravel.test-1 pgrep -f "php-fpm: master")
+docker exec tenant-api-credifacil-laravel.test-1 kill -USR2 $PHP_PID
+```
+
 ## Scripts importantes
 
 - `./backup_vps_hostinger.sh` — Trae dumps de producción (DO) y restaura en Docker local
 - `./start-project.sh` — Inicia los contenedores
 - `./stop-project.sh` — Detiene los contenedores
+
+### 🔧 Nginx para PWA (Ionic/Angular)
+El portal cliente (`micliente.credifacilcolombia.com`) tiene:
+- `root /opt/credifacil/client-portal-ionic/www/browser` (Angular 20 build output)
+- `try_files $uri $uri/ /index.html;` para SPA routing
+- HTTP → HTTPS redirect (obligatorio para Service Workers)
+- `location /api/` proxy_pass a tenant-api (:8021)
+- `location /sanctum/` proxy_pass a tenant-api (:8021)
+- Security headers: HSTS, CSP, X-Frame-Options, etc.
+
+### Configs que NO se versionan
+- Los `.env` y `environment.prod.ts` (Ionic) están en `.gitignore`
+- `client-portal-ionic` es repo independiente (no submódulo de `credifacil` raíz)
+- Los archivos `.log` y `.pid` no se versionan
 
 ## Documentación clave en la raíz
 
