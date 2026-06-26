@@ -34,10 +34,11 @@ check_port() {
 }
 
 # Función para esperar a que un servicio esté listo
+# Uso: wait_for_service <url> <name> [max_attempts]
 wait_for_service() {
     local url=$1
     local service_name=$2
-    local max_attempts=30
+    local max_attempts=${3:-30}
     local attempt=1
 
     echo -n "  Esperando $service_name"
@@ -157,18 +158,22 @@ setup_queue_workers() {
     docker exec landlord-creditapi-laravel.test-1 pkill -f "queue:work" 2>/dev/null || true
 
     # Tenant: procesa eventos InstallmentPaid → NotifyLandlordOfPayment
-    docker exec tenant-api-laravel.test-1 php artisan queue:work redis \
+    nohup docker exec tenant-api-laravel.test-1 php artisan queue:work redis \
         --sleep=3 --tries=3 --timeout=60 --queue=default \
         > "$PROJECT_DIR/tenant-queue.log" 2>&1 &
-    echo $! > "$PROJECT_DIR/tenant-queue.pid"
-    echo -e "  ${GREEN}Tenant queue worker iniciado (PID: $!)${NC}"
+    TENANT_QUEUE_PID=$!
+    disown $TENANT_QUEUE_PID 2>/dev/null || true
+    echo $TENANT_QUEUE_PID > "$PROJECT_DIR/tenant-queue.pid"
+    echo -e "  ${GREEN}Tenant queue worker iniciado (PID: $TENANT_QUEUE_PID)${NC}"
 
     # Landlord: por si tiene jobs propios encolados
-    docker exec landlord-creditapi-laravel.test-1 php artisan queue:work redis \
+    nohup docker exec landlord-creditapi-laravel.test-1 php artisan queue:work redis \
         --sleep=3 --tries=3 --timeout=60 --queue=default \
         > "$PROJECT_DIR/landlord-queue.log" 2>&1 &
-    echo $! > "$PROJECT_DIR/landlord-queue.pid"
-    echo -e "  ${GREEN}Landlord queue worker iniciado (PID: $!)${NC}"
+    LANDLORD_QUEUE_PID=$!
+    disown $LANDLORD_QUEUE_PID 2>/dev/null || true
+    echo $LANDLORD_QUEUE_PID > "$PROJECT_DIR/landlord-queue.pid"
+    echo -e "  ${GREEN}Landlord queue worker iniciado (PID: $LANDLORD_QUEUE_PID)${NC}"
 
     echo ""
 }
@@ -183,6 +188,43 @@ setup_mysql_permissions() {
         "GRANT ALL PRIVILEGES ON *.* TO 'sail'@'%' WITH GRANT OPTION; FLUSH PRIVILEGES;" 2>/dev/null
 
     echo -e "  ${GREEN}Permisos de MySQL configurados${NC}"
+    echo ""
+}
+
+# Función para configurar el portal cliente (Ionic)
+setup_ionic_portal() {
+    echo -e "${BLUE}[Ionic Portal]${NC} Configurando..."
+
+    cd "$PROJECT_DIR/client-portal-ionic"
+
+    # 1. Instalar dependencias npm si no existen
+    if [ ! -d node_modules ]; then
+        echo -e "  Instalando dependencias npm..."
+        npm install --silent 2>/dev/null
+        echo -e "  ${GREEN}Dependencias npm instaladas${NC}"
+    else
+        echo -e "  ${GREEN}Dependencias npm OK${NC}"
+    fi
+
+    # 2. Verificar si ya está corriendo en puerto 5177
+    if lsof -Pi :5177 -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo -e "  ${GREEN}Ionic Portal ya está corriendo en :5177${NC}"
+    else
+        # Matar procesos ng anteriores
+        pkill -f "ng serve" 2>/dev/null || true
+
+        echo -e "  Iniciando servidor de desarrollo..."
+        nohup npm start -- --host 0.0.0.0 --port 5177 > "$PROJECT_DIR/ionic-portal.log" 2>&1 &
+        IONIC_PID=$!
+        disown $IONIC_PID 2>/dev/null || true
+        echo $IONIC_PID > "$PROJECT_DIR/ionic-portal.pid"
+        echo -e "  ${GREEN}Ionic Portal iniciado (PID: $IONIC_PID)${NC}"
+    fi
+
+    # 3. Esperar a que esté listo (Angular compila lento, timeout ~90s)
+    wait_for_service "http://localhost:5177" "Ionic Portal" 45
+
+    cd "$PROJECT_DIR"
     echo ""
 }
 
@@ -209,8 +251,9 @@ setup_frontend() {
         pkill -f "vite" 2>/dev/null || true
 
         echo -e "  Iniciando servidor de desarrollo..."
-        npm run dev > "$PROJECT_DIR/frontend.log" 2>&1 &
+        nohup npm run dev > "$PROJECT_DIR/frontend.log" 2>&1 &
         FRONTEND_PID=$!
+        disown $FRONTEND_PID 2>/dev/null || true
         echo $FRONTEND_PID > "$PROJECT_DIR/frontend.pid"
         echo -e "  ${GREEN}Frontend iniciado (PID: $FRONTEND_PID)${NC}"
     fi
@@ -226,28 +269,32 @@ setup_frontend() {
 # INICIO DEL SCRIPT PRINCIPAL
 # ============================================================
 
-echo -e "${YELLOW}[1/6]${NC} Verificando puertos..."
-check_port 8020 "Landlord API"
-check_port 8021 "Tenant API"
-check_port 5176 "Frontend"
-check_port 3320 "Landlord DB"
-check_port 3321 "Tenant DB"
+echo -e "${YELLOW}[1/7]${NC} Verificando puertos..."
+check_port 8020 "Landlord API" || true
+check_port 8021 "Tenant API" || true
+check_port 5176 "Frontend" || true
+check_port 5177 "Ionic Portal" || true
+check_port 3320 "Landlord DB" || true
+check_port 3321 "Tenant DB" || true
 echo ""
 
-echo -e "${YELLOW}[2/6]${NC} Configurando Landlord Credit API..."
+echo -e "${YELLOW}[2/7]${NC} Configurando Landlord Credit API..."
 setup_laravel_project "landlord-creditapi" "Landlord API" "8020" "landlord-creditapi-mysql-1"
 
-echo -e "${YELLOW}[3/6]${NC} Configurando Tenant API..."
+echo -e "${YELLOW}[3/7]${NC} Configurando Tenant API..."
 setup_laravel_project "tenant-api" "Tenant API" "8021" "tenant-api-mysql-1"
 
-echo -e "${YELLOW}[4/6]${NC} Configurando permisos de base de datos..."
+echo -e "${YELLOW}[4/7]${NC} Configurando permisos de base de datos..."
 setup_mysql_permissions "tenant-api-mysql-1"
 
-echo -e "${YELLOW}[5/6]${NC} Iniciando queue workers..."
+echo -e "${YELLOW}[5/7]${NC} Iniciando queue workers..."
 setup_queue_workers
 
-echo -e "${YELLOW}[6/6]${NC} Configurando Frontend..."
+echo -e "${YELLOW}[6/7]${NC} Configurando Frontend..."
 setup_frontend
+
+echo -e "${YELLOW}[7/7]${NC} Configurando Ionic Portal..."
+setup_ionic_portal
 
 # ============================================================
 # RESUMEN FINAL
@@ -260,7 +307,8 @@ echo ""
 echo -e "${BLUE}Servicios disponibles:${NC}"
 echo "  Landlord API:     http://localhost:8020"
 echo "  Tenant API:       http://localhost:8021"
-echo "  Frontend:         http://localhost:5176"
+echo "  Frontend (React): http://localhost:5176"
+echo "  Portal Cliente:   http://localhost:5177"
 echo ""
 echo -e "${BLUE}Bases de datos:${NC}"
 echo "  Landlord DB:      localhost:3320 (user: sail, pass: password)"
@@ -271,6 +319,7 @@ echo "  Detener proyecto:     ./stop-project.sh"
 echo "  Ver logs landlord:    docker logs -f landlord-creditapi-laravel.test-1"
 echo "  Ver logs tenant:      docker logs -f tenant-api-laravel.test-1"
 echo "  Ver logs frontend:    tail -f frontend.log"
+echo "  Ver logs ionic:       tail -f ionic-portal.log"
 echo "  Ver queue tenant:     tail -f tenant-queue.log"
 echo "  Ver queue landlord:   tail -f landlord-queue.log"
 echo ""
@@ -311,9 +360,15 @@ if [[ $REPLY =~ ^[Ss]$ ]]; then
         fi
 
         if curl -s --max-time 3 "http://localhost:5176" > /dev/null 2>&1; then
-            status+="${GREEN}Frontend:OK${NC}"
+            status+="${GREEN}Frontend:OK${NC} "
         else
-            status+="${RED}Frontend:DOWN${NC}"
+            status+="${RED}Frontend:DOWN${NC} "
+        fi
+
+        if curl -s --max-time 3 "http://localhost:5177" > /dev/null 2>&1; then
+            status+="${GREEN}Ionic:OK${NC}"
+        else
+            status+="${RED}Ionic:DOWN${NC}"
         fi
 
         echo -e "  [$(date '+%H:%M:%S')] $status"

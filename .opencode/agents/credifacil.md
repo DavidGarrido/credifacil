@@ -5,19 +5,36 @@ mode: primary
 
 # Agente Credifacil — Flujo de Trabajo Multi-máquina
 
-## Proyecto
+## Proyecto — 4 repos independientes (cada uno su propio git)
 
-Tres proyectos independientes (cada uno su propio git):
+| # | Proyecto | Ruta local | Ruta VPS | Stack | Quién lo usa |
+|---|---|---|---|---|---|
+| 1 | **landlord** | `landlord-creditapi/` | `/opt/credifacil/landlord-creditapi/` | Laravel 11 + MySQL | Admin CrediFácil |
+| 2 | **tenant** | `tenant-api/` | `/opt/credifacil/tenant-api-credifacil/` | Laravel 11 + MySQL | Comercios (multi-tenant) |
+| 3 | **frontend** | `frontend/` | *(solo local)* | React + Vite + Tailwind | **Admin comercios** (empleados con roles) |
+| 4 | **client-portal-ionic** 🆕 | `client-portal-ionic/` | *(solo local)* | Ionic/Angular + Capacitor | **Clientes/deudores** (personas que piden crédito) |
 
-| Proyecto | Ruta local | Ruta VPS | Stack |
+### Descripción de cada proyecto
+
+| Proyecto | Rol | Autenticación | Público objetivo |
 |---|---|---|---|
-| **landlord** | `landlord-creditapi/` | `/opt/credifacil/landlord-creditapi/` | Laravel 11 + MySQL |
-| **tenant** | `tenant-api/` | `/opt/credifacil/tenant-api-credifacil/` | Laravel 11 + MySQL |
-| **frontend** | `frontend/` | *(solo local)* | React + Vite + Tailwind |
+| `landlord` | API central — créditos, clientes, transacciones, cobros | API keys + Sanctum | Solo el backend tenant |
+| `tenant` | API multi-tenant — cuotas, pagos, usuarios del comercio | Sanctum (email+password) | Admin comercios + proxy desde Ionic |
+| `frontend` (React) | Panel admin — solicitudes, transacciones, pagos, usuarios, docs | Sanctum (email+password) | Empleados del comercio (admin, cajero) |
+| `client-portal-ionic` 🆕 | App cliente — dashboard, créditos, pagos, simulador, perfil | Cédula+teléfono + código Telegram | Deudores/clientes finales |
 
-- `landlord`: API central de créditos
-- `tenant`: API multi-tenant por comercio
-- `frontend`: Cliente web
+### Cómo se comunican
+
+```
+React (admin comercio) ───→ Tenant API ───→ Landlord API (vía HTTP)
+Ionic (cliente)       ───→ Tenant API ───→ Landlord API (vía HTTP)
+                                              │
+                                         (datos centrales:
+                                          clients, credits,
+                                          credit_transactions)
+                                              │
+Tenant DB local: credit_installments, pagos, usuarios
+```
 
 ## Máquinas
 
@@ -106,12 +123,13 @@ Verificar la fecha del último backup local en `/tmp/credifacil_dumps/`. Si no e
 
 ## Submódulos
 
-Los submódulos `landlord-creditapi/`, `tenant-api/` y `frontend/` apuntan a commits específicos. Después de modificarlos:
+Los submódulos `landlord-creditapi/`, `tenant-api/`, `frontend/` y `client-portal-ionic/` apuntan a commits específicos. Después de modificarlos:
 ```bash
 cd landlord-creditapi && git add -A && git commit -m "..." && git push
 cd ../tenant-api && git add -A && git commit -m "..." && git push
 cd ../frontend && git add -A && git commit -m "..." && git push
-cd .. && git add landlord-creditapi tenant-api frontend && git commit -m "chore: update submodules" && git push
+cd ../client-portal-ionic && git add -A && git commit -m "..." && git push
+cd .. && git add landlord-creditapi tenant-api frontend client-portal-ionic && git commit -m "chore: update submodules" && git push
 ```
 
 ## Scripts importantes
@@ -127,3 +145,5 @@ cd .. && git add landlord-creditapi tenant-api frontend && git commit -m "chore:
 - `DEPLOYMENT.md` — Despliegue
 - `DATABASE_STRUCTURE.md` — Estructura de BD
 - `QUICK_START.md` — Inicio rápido
+- `SISTECREDITO_COMPARATIVA.md` — Estudio de Sistecredito y plan de implementación de features faltantes en Ionic y React
+- `ARQUITECTURA_SNAPSHOTS_MULTITENANT.md` — Solución de snapshots para consultar créditos multi-tenant sin replicar cuotas

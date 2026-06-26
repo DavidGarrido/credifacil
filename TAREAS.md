@@ -4,7 +4,23 @@ Fuente: Notion - "Tareas Credifacil" (actualizado 2026-03-02)
 
 ## Prioridad Alta
 
-### 1. Solucionar error en el boton de pago en cobranza de aliados
+### 1. Implementar sistema de niveles para clientes
+- **Categoria:** Nuevo Feature
+- **Estado:** Pendiente
+- Crear un sistema de niveles (ej: Bronce, Plata, Oro, Platino) para segmentar clientes según comportamiento de pago, antigüedad, monto de crédito, etc.
+- **Componentes:**
+  - Migración: tabla `client_levels` (config de niveles: nombre, color, icono, requisitos) + columna `level_id`/`current_level` en `clients`
+  - Backend (landlord): CRUD de niveles, endpoint para consultar nivel del cliente, lógica de ascenso/descenso automático basado en reglas
+  - Backend (tenant): proxy para consultar nivel del cliente, aplicar tasas/beneficios según nivel
+  - Frontend (Ionic): mostrar nivel del cliente (badge, tarjeta) en dashboard, perfil y detalle de crédito
+  - Frontend (React admin): visualización de nivel en listado de clientes, edición manual de nivel
+- **Reglas sugeridas:**
+  - Puntualidad en pagos (% de cuotas pagadas a tiempo)
+  - Antigüedad como cliente
+  - Monto total de créditos otorgados
+  - Historial de morosidad
+
+### 2. Solucionar error en el boton de pago en cobranza de aliados
 - **Categoria:** Correcciones Tecnicas
 - **Estado:** Pendiente
 - El boton de pago en el modulo de cobranza de aliados no funciona correctamente.

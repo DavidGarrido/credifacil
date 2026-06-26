@@ -8,9 +8,9 @@
 set -euo pipefail
 
 # ── Configuración ────────────────────────────────────────────
-VPS_HOST="137.184.163.131"
+VPS_HOST="187.124.232.145"
 VPS_USER="root"
-SSH_KEY="$HOME/.ssh/do_credifacil"
+SSH_KEY="$HOME/.ssh/id_rsa"
 DUMP_DIR="/tmp/credifacil_dumps"
 
 # Producción – landlord
@@ -94,7 +94,18 @@ docker exec -i "$LOCAL_TENANT_CONTAINER" \
     || err "Fallo al restaurar tenant local"
 ok "Tenant restaurado (todas las DBs)"
 
-# ── 6. Verificación rápida ───────────────────────────────────
+# ── 6. Actualizar dominios a localhost ─────────────────────────
+info "Actualizando dominios de tenant a localhost..."
+docker exec "$LOCAL_TENANT_CONTAINER" \
+    mysql -u root -p"$LOCAL_TENANT_ROOT_PASS" tenant_api \
+    -e "UPDATE domains SET domain = REPLACE(domain, '.credifacilcolombia.com', '.localhost');" \
+    2>/dev/null || err "Fallo al actualizar dominios"
+UPDATED=$(docker exec "$LOCAL_TENANT_CONTAINER" \
+    mysql -u root -p"$LOCAL_TENANT_ROOT_PASS" tenant_api \
+    -se "SELECT COUNT(*) FROM domains;" 2>/dev/null)
+ok "Dominios actualizados a localhost ($UPDATED dominios)"
+
+# ── 7. Verificación rápida ───────────────────────────────────
 echo ""
 info "Verificando datos locales..."
 

@@ -11,8 +11,14 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
-# Extraer el token de Telegram del .env
-TOKEN=$(grep TELEGRAM_BOT_TOKEN "$ENV_FILE" | cut -d '=' -f2 | tr -d '"' | tr -d "'")
+# Extraer el token de Telegram del .env basado en el modo
+if [ "$MODE" == "prod" ]; then
+    TOKEN_VAR="TELEGRAM_BOT_TOKEN_PROD"
+else
+    TOKEN_VAR="TELEGRAM_BOT_TOKEN_TEST"
+fi
+
+TOKEN=$(grep "$TOKEN_VAR" "$ENV_FILE" | cut -d '=' -f2 | tr -d '"' | tr -d "'")
 
 if [ -z "$TOKEN" ]; then
     echo "Error: TELEGRAM_BOT_TOKEN no encontrado en el archivo .env"
