@@ -178,6 +178,42 @@ setup_queue_workers() {
     echo ""
 }
 
+# Función para iniciar microservicio Telegram (Telethon)
+setup_telegram_microservice() {
+    local pid_file="$PROJECT_DIR/telegram-httpd.pid"
+
+    # Verificar si ya está corriendo
+    if [ -f "$pid_file" ] && kill -0 $(cat "$pid_file") 2>/dev/null; then
+        echo -e "  ${GREEN}Microservicio Telegram ya está corriendo (PID: $(cat $pid_file))${NC}"
+        return 0
+    fi
+
+    # Si existe un PID file pero el proceso murió, limpiarlo
+    if [ -f "$pid_file" ]; then
+        rm -f "$pid_file"
+    fi
+
+    # Verificar que los scripts existan
+    if [ ! -f /opt/credifacil/start.sh ]; then
+        echo -e "  ${YELLOW}Microservicio Telegram no instalado (/opt/credifacil/start.sh no existe)${NC}"
+        echo -e "  ${YELLOW}Para instalarlo, sigue la documentación en telegram-credifacil.md${NC}"
+        return 0
+    fi
+
+    # Iniciar usando el script de start
+    /opt/credifacil/start.sh 2>/dev/null
+
+    # Copiar PID al archivo del proyecto para monitoreo
+    if [ -f /tmp/telegram_httpd.pid ]; then
+        cp /tmp/telegram_httpd.pid "$pid_file"
+        echo -e "  ${GREEN}Microservicio Telegram iniciado (PID: $(cat $pid_file))${NC}"
+    else
+        echo -e "  ${YELLOW}Microservicio Telegram: no se pudo obtener PID${NC}"
+    fi
+
+    echo ""
+}
+
 # Función para otorgar permisos MySQL para tenants
 setup_mysql_permissions() {
     local mysql_container=$1
@@ -290,6 +326,9 @@ setup_mysql_permissions "tenant-api-mysql-1"
 echo -e "${YELLOW}[5/7]${NC} Iniciando queue workers..."
 setup_queue_workers
 
+echo -e "${YELLOW}[5.5/7]${NC} Iniciando microservicio Telegram..."
+setup_telegram_microservice
+
 echo -e "${YELLOW}[6/7]${NC} Configurando Frontend..."
 setup_frontend
 
@@ -322,6 +361,7 @@ echo "  Ver logs frontend:    tail -f frontend.log"
 echo "  Ver logs ionic:       tail -f ionic-portal.log"
 echo "  Ver queue tenant:     tail -f tenant-queue.log"
 echo "  Ver queue landlord:   tail -f landlord-queue.log"
+echo "  Ver logs Telegram:    tail -f /tmp/telegram_httpd.log"
 echo ""
 
 # Preguntar si quiere monitorear
@@ -366,9 +406,15 @@ if [[ $REPLY =~ ^[Ss]$ ]]; then
         fi
 
         if curl -s --max-time 3 "http://localhost:5177" > /dev/null 2>&1; then
-            status+="${GREEN}Ionic:OK${NC}"
+            status+="${GREEN}Ionic:OK${NC} "
         else
-            status+="${RED}Ionic:DOWN${NC}"
+            status+="${RED}Ionic:DOWN${NC} "
+        fi
+
+        if curl -s --max-time 3 "http://localhost:8099/health" > /dev/null 2>&1; then
+            status+="${GREEN}Telegram:OK${NC}"
+        else
+            status+="${RED}Telegram:DOWN${NC}"
         fi
 
         echo -e "  [$(date '+%H:%M:%S')] $status"

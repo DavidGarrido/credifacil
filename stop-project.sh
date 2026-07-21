@@ -66,13 +66,28 @@ else
 fi
 echo ""
 
-# 3. Detener Tenant API
+# 3. Detener Microservicio Telegram
+echo "📱 Deteniendo Microservicio Telegram..."
+if [ -f "telegram-httpd.pid" ]; then
+    TG_PID=$(cat telegram-httpd.pid)
+    if kill -0 $TG_PID 2>/dev/null; then
+        kill $TG_PID
+        echo "  Telegram detenido (PID: $TG_PID)"
+    fi
+    rm -f telegram-httpd.pid
+fi
+/opt/credifacil/stop.sh 2>/dev/null || true
+pkill -f "telegram_httpd.py 8099" 2>/dev/null || true
+echo "✅ Microservicio Telegram detenido"
+echo ""
+
+# 4. Detener Tenant API
 stop_docker_service "Tenant API" "tenant-api"
 
-# 4. Detener Landlord Credit API
+# 5. Detener Landlord Credit API
 stop_docker_service "Landlord Credit API" "landlord-creditapi"
 
-# 5. Limpiar archivos temporales
+# 6. Limpiar archivos temporales
 echo "🧹 Limpiando archivos temporales..."
 rm -f frontend.log 2>/dev/null
 echo "✅ Limpieza completada"

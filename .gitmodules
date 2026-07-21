@@ -1,0 +1,15 @@
+[submodule "landlord-creditapi"]
+	path = landlord-creditapi
+	url = git@github.com:DavidGarrido/landlord-creditapi.git
+
+[submodule "tenant-api"]
+	path = tenant-api
+	url = git@github.com:DavidGarrido/tenant-api-credifacil.git
+
+[submodule "frontend"]
+	path = frontend
+	url = git@github.com:DavidGarrido/frontend-tenant-credifacil.git
+
+[submodule "client-portal-ionic"]
+	path = client-portal-ionic
+	url = git@github.com:DavidGarrido/client-portal-ionic.git

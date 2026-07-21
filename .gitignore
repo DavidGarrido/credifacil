@@ -1,0 +1,24 @@
+# PID files (backend queue workers, telegram, etc.)
+*.pid
+
+# Log files
+*.log
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Deepseek artifacts
+.deepseek/
+
+# Office documents (notes, etc.)
+*.docx
+
+# Client portal build
+client-portal/
